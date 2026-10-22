@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response as HttpResponse
+from fastapi.responses import JSONResponse, Response as HttpResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
@@ -59,6 +59,15 @@ async def lifespan(_app):
 
 
 app = FastAPI(title='Romanized Nepali data collection', lifespan=lifespan)
+
+
+@app.exception_handler(404)
+async def not_found(request: Request, exc):
+    # Echo the path the app received: makes hosting/rewrite problems visible from the outside.
+    detail = getattr(exc, 'detail', None)
+    if detail and detail != 'Not Found':
+        return JSONResponse({'detail': detail}, status_code=404)
+    return JSONResponse({'detail': 'Not Found', 'path': request.url.path}, status_code=404)
 
 
 @app.middleware('http')
