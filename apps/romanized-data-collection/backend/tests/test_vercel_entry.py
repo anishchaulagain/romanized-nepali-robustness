@@ -20,4 +20,4 @@ def test_rewritten_requests_reach_their_routes():
         assert c.get('/api/index?__path=/docs').status_code == 200
         r = c.get('/api/index?__path=/api/admin/units&q=x&limit=5')           # other query params survive
         assert r.status_code == 401
-        assert c.get('/api/index?__path=/nope').json() == {'detail': 'Not Found', 'path': '/nope'}
+        assert c.get('/api/index?__path=/nope').json()['path'] == '/nope'

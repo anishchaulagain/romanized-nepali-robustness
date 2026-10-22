@@ -1,4 +1,4 @@
-# Vercel Python entry point: every request is rewritten to this function (see vercel.json).
+# Vercel Python entry point: every request is routed to this function (see vercel.json).
 import sys
 from pathlib import Path
 from urllib.parse import parse_qsl, unquote, urlencode
@@ -9,8 +9,8 @@ from app.main import app as fastapi_app  # noqa: E402
 
 
 class RestoreOriginalPath:
-    """vercel.json rewrites every request to /api/index?__path=<original path>, and the function then sees the
-    rewritten path. Put the original path back before FastAPI routes the request."""
+    """If a request arrives as /api/index?__path=<original path> (a rewrite that carries the original path),
+    put the original path back before FastAPI routes the request. Other requests pass through unchanged."""
 
     def __init__(self, inner):
         self.inner = inner

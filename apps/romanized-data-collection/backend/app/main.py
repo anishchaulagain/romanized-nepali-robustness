@@ -67,7 +67,8 @@ async def not_found(request: Request, exc):
     detail = getattr(exc, 'detail', None)
     if detail and detail != 'Not Found':
         return JSONResponse({'detail': detail}, status_code=404)
-    return JSONResponse({'detail': 'Not Found', 'path': request.url.path}, status_code=404)
+    return JSONResponse({'detail': 'Not Found', 'path': request.url.path, 'query': request.url.query},
+                        status_code=404)
 
 
 @app.middleware('http')
