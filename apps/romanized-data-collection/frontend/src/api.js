@@ -1,4 +1,5 @@
-const BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+// Accept the backend URL with or without a trailing slash or /api; request paths already start with /api.
+const BASE = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '').replace(/\/api$/, '');
 const TOKEN_KEY = 'rn-token';
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
