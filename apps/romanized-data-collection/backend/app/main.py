@@ -130,7 +130,8 @@ class LoginIn(BaseModel):
 
 @app.get('/api/health')
 def health():
-    return {'ok': True}
+    # Allowed origins are public anyway (browsers see them in CORS headers); listing them helps debug CORS.
+    return {'ok': True, 'allowed_origins': config.FRONTEND_ORIGINS}
 
 
 @app.post('/api/auth/login')

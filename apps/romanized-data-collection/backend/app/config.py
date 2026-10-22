@@ -22,8 +22,18 @@ SECRET_KEY = _required('SECRET_KEY')
 ADMIN_USERNAME = _required('ADMIN_USERNAME')
 ADMIN_PASSWORD = _required('ADMIN_PASSWORD')
 
-FRONTEND_ORIGINS = [o.strip() for o in os.getenv('FRONTEND_ORIGINS', 'http://localhost:5173').split(',') if o.strip()]
-APP_URL = os.getenv('APP_URL', FRONTEND_ORIGINS[0] if FRONTEND_ORIGINS else '')
+def _origin(value: str) -> str:
+    """Reduce a pasted URL to a browser origin: no quotes, path or trailing slash; https:// if no scheme."""
+    value = value.strip().strip('"\'').strip()
+    if value and '://' not in value:
+        value = 'https://' + value
+    scheme, _, rest = value.partition('://')
+    return f"{scheme.lower()}://{rest.split('/')[0].lower()}" if rest else ''
+
+
+FRONTEND_ORIGINS = [o for o in (_origin(v) for v in os.getenv('FRONTEND_ORIGINS', 'http://localhost:5173').split(','))
+                    if o]
+APP_URL = os.getenv('APP_URL', FRONTEND_ORIGINS[0] if FRONTEND_ORIGINS else '').strip().strip('"\'').rstrip('/')
 WRITER_SLOTS = int(os.getenv('WRITER_SLOTS', '6'))  # must match the seed design (scripts/prepare_annotation.py)
 TOKEN_TTL_HOURS =int(os.getenv('TOKEN_TTL_HOURS', '168'))
 SEED_FILE = Path(os.getenv('SEED_FILE', BACKEND_DIR / 'seed' / 'items.json'))

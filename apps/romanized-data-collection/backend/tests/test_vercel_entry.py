@@ -14,9 +14,9 @@ from api.index import app  # noqa: E402
 
 def test_rewritten_requests_reach_their_routes():
     with TestClient(app) as c:
-        assert c.get('/api/index?__path=/api/health').json() == {'ok': True}
-        assert c.get('/api/index?__path=api/health').json() == {'ok': True}   # without leading slash
-        assert c.get('/api/health').json() == {'ok': True}                    # no rewrite: unchanged
+        assert c.get('/api/index?__path=/api/health').json()['ok'] is True
+        assert c.get('/api/index?__path=api/health').json()['ok'] is True   # without leading slash
+        assert c.get('/api/health').json()['ok'] is True                    # no rewrite: unchanged
         assert c.get('/api/index?__path=/docs').status_code == 200
         r = c.get('/api/index?__path=/api/admin/units&q=x&limit=5')           # other query params survive
         assert r.status_code == 401
