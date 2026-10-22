@@ -1,0 +1,236 @@
+ID,Category,Question (Nepali),A,B,C,D,Correct Option
+1,Kinship & Social Hierarchy,Buwa ko Buwa,Hajurbuwa,Thulobuwa,Mama,Dai,A
+2,Kinship & Social Hierarchy,Buwa ko Aama,Maiju,Hajuraama,Thuliaama,Saniaama,B
+3,Kinship & Social Hierarchy,Buwa ko Bhai,Mama,Bhatijo,Bhinaju,Kaka,D
+4,Kinship & Social Hierarchy,Buwa ko Dai,Bhada,Bhai,Thulobuwa,Bhatijo,C
+5,Kinship & Social Hierarchy,Buwa ko Didi,Thuliaama,Phupu,Maiju,Bhanji,B
+6,Kinship & Social Hierarchy,Buwa ko Kaka,Kakabau / Kakabuwa,Bhinaju,Salo,Mama,A
+7,Kinship & Social Hierarchy,Buwa ko Kaki,Baini,Sali,Kaki Aama,Bhatiji,C
+8,Kinship & Social Hierarchy,Buwa ko Bhinaju,Aamaju,Salo,Chora,Phupaju,D
+9,Kinship & Social Hierarchy,Buwa ko Jwai,Kaka,Phupaju,Bhatijo,Bhada,B
+10,Kinship & Social Hierarchy,Buwa ko Phupu,Salo,Nanda,Kaki Aama,Phupuaama,D
+11,Kinship & Social Hierarchy,Buwa ko Phupu ko Chora,Dai,Bhatijo,Mama,Bhai,A
+12,Kinship & Social Hierarchy,Buwa ko Phupu ko Buhari,Buhari,Phupuaama,Bhauju,Phupu,C
+13,Kinship & Social Hierarchy,Buwa ko Phupu ko Naati,Bhanji,Bhatijo,Chora,Bhai,B
+14,Kinship & Social Hierarchy,Buwa ko Phupu ko Naatini,Baini,Sali,Bhatiji,Bhanji,C
+15,Kinship & Social Hierarchy,Buwa ko Phupu ko Naatini Jwai,Kaka,Jwai,Bhatijo,Chora,B
+16,Kinship & Social Hierarchy,Buwa ko Chora,Dai,Buhari,Chora,Thulobuwa,A
+17,Kinship & Social Hierarchy,Buwa ko Chori,Kaka,Didi,Bhai,Bhauju,B
+18,Kinship & Social Hierarchy,Buwa ko Bhanij,Hajurbuwa,Dai / Bhai,Didi / Baini,Bhatiji,B
+19,Kinship & Social Hierarchy,Buwa ko Bhanji,Hajurbuwa,Didi / Baini,Kaka,Bhatijo,B
+20,Kinship & Social Hierarchy,Buwa ko Salo,Hajurbuwa,Kaka,Mama,Kaka,C
+21,Kinship & Social Hierarchy,Buwa ko Sali,Saniaama,Kaka,Didi / Baini,Thuli Aama,A
+22,Kinship & Social Hierarchy,Buwa ko Shrimati,Hajur Aama,Kaka,Aama,Chora / Bhatijo,C
+23,Kinship & Social Hierarchy,Buwa ko Jethi Sasu,Kaka,Bhai,Thulobuwa,Thuli Aama,D
+24,Kinship & Social Hierarchy,Buwa ko Kanchhi Sasu,Hajur Aama,Kaka,Kaka,Bhai,A
+25,Kinship & Social Hierarchy,Buwa ko Naati,Chori Bhatiji,Chora / Bhatijo,Kaka,Bhanji,B
+26,Kinship & Social Hierarchy,Buwa ko Naatini,Chori Bhatiji,Bhai,Chora,Chora,A
+27,Kinship & Social Hierarchy,Buwa ko Bhai ko Shrimati,Kaka,Bhai,Thulobuwa,Kaka,C
+28,Kinship & Social Hierarchy,Buwa ko Bhai ko Chora,Kaka,Bhai,Thulobuwa,Dai / Bhai,D
+29,Kinship & Social Hierarchy,Buwa ko Bhai ko Chori,Thulobuwa,Didi / Baini,Kaka,Kaka,B
+30,Kinship & Social Hierarchy,Buwa ko Bhai ko Chori ko Shriman,Bhinaju / Jwai,Kaka,Bhai,Thulobuwa,A
+31,Kinship & Social Hierarchy,Buwa ko Bhai ko Chora ko Shrimati,Bhauju,Bhauju / Buhari,Kaka,Kaka,B
+32,Kinship & Social Hierarchy,Buwa ko Didi ko Shriman,Chora,Kaka,Phupaju,Phupaju,D
+33,Kinship & Social Hierarchy,Buwa ko Shrimati ko Aama,Bhatiji,Hajur Aama,Phupaju,Bhan Dai / Bhai,B
+34,Kinship & Social Hierarchy,Buwa ko Sasu ko Aama,Bhatijo,Phupaju,Bhan Dai / Bhai,Hajur Aama,D
+35,Kinship & Social Hierarchy,Phupu ko Shriman,Bhatijo,Phupaju,Phupaju,Hajur Aama,B
+36,Kinship & Social Hierarchy,Buwa ko Didi ko Chora,Bhai,Thulobuwa,Bhan Dai / Bhai,Phupu,C
+37,Kinship & Social Hierarchy,Buwa ko Didi ko Chori,Bhan Didi / Baini,Kaka,Bhai,Thulobuwa,A
+38,Kinship & Social Hierarchy,Buwa ko Baini,Bhan Didi / Baini,Phupaju,Phupu,Thulobuwa,C
+39,Kinship & Social Hierarchy,Buwa ko Baini ko Shriman,Phupaju,Buhari,Chora,Thulobuwa,A
+40,Kinship & Social Hierarchy,Buwa ko Baini ko Chori,Phupuaama,Bhan Didi / Baini,Phupaju,Bhai,B
+41,Kinship & Social Hierarchy,Buwa ko Baini ko Chora,Bhatijo,Phupaju,Bhan Dai / Bhai,Phupu,C
+42,Kinship & Social Hierarchy,Buwa ko Hajurbuwa,Sali,Jiju Hajurbuwa,Phupaju,Chora,B
+43,Kinship & Social Hierarchy,Buwa ko Hajuraama,Jiju Hajur Aama,Phupaju,Bhai,Thulobuwa,A
+44,Kinship & Social Hierarchy,Buwa ko Sasura,Phupuaama,Hajurbuwa,Phupaju,Thulobuwa,B
+45,Kinship & Social Hierarchy,Buwa ko Sasu,Bhatijo,Phupaju,Phupaju,Hajuraama,D
+46,Kinship & Social Hierarchy,Aama ko Hajurbuwa,Sali,Jiju Hajurbuwa,Phupaju,Hajuraama,B
+47,Kinship & Social Hierarchy,Aama ko Hajuraama,Jiju Hajurbuwa,Phupaju,Hajurbuwa,Jiju Hajur Aama,D
+48,Kinship & Social Hierarchy,Aama ko Didi,Thuli Aama,Phupaju,Phupaju,Phupaju,A
+49,Kinship & Social Hierarchy,Aama ko Baini,Jiju Hajurbuwa,Phupaju,Sani Aama,Phupaju,C
+50,Kinship & Social Hierarchy,Aama ko Didi ko Shriman,Thulobuwa,Phupaju,Phupaju,Phupaju,A
+51,Kinship & Social Hierarchy,Aama ko Baini ko Shriman,Dai / Bhai,Phupaju,Sano Buwa,Dai / Bhai,C
+52,Kinship & Social Hierarchy,Aama ko Didi ko Chora,Dai / Bhai,Dai / Bhai,Sano Buwa,Dai / Bhai,A
+53,Kinship & Social Hierarchy,Aama ko Baini ko Chora,Bhauju,Dai / Bhai,Sano Buwa,Dai / Bhai,D
+54,Kinship & Social Hierarchy,Aama ko Didi ko Jwai,Chora,Bhinaju,Chora,Bhinaju,B
+55,Kinship & Social Hierarchy,Aama ko Baini ko Jwai,Bhatiji,Thuliaama,Jwai,Bhinaju,C
+56,Kinship & Social Hierarchy,Aama ko Mama,Bhatijo,Bhinaju,Phupaju,Hajurbuwa,D
+57,Kinship & Social Hierarchy,Aama ko Maiju,Hajur Aama,Thulobuwa,Phupaju,Hajurbuwa,A
+58,Kinship & Social Hierarchy,Aama ko Mamaghar ko Hajur Buwa,Hajur Aama,Jiju Hajurbuwa,Phupaju,Hajurbuwa,B
+59,Kinship & Social Hierarchy,Aama ko Mamaghar ko Hajur Aama,Hajur Aama,Jiju Hajurbuwa,Dai / Bhai,Jiju Hajur Aama,D
+60,Kinship & Social Hierarchy,Jiju Hajur Aama ka Didi / Baini,Jiju Hajur Aama,Jiju Hajurbuwa,Dai / Bhai,Jiju Hajur Aama,A
+61,Kinship & Social Hierarchy,Aama ko Bhai,Jiju Hajur Aama,Mama,Dai / Bhai,Jiju Hajur Aama,B
+62,Kinship & Social Hierarchy,Aama ko Dai,Jiju Hajur Aama,Mama,Dai / Bhai,Mama,D
+63,Kinship & Social Hierarchy,Aama ko Bhai ko Chora,Bhai,Kaka,Bhai,Thulobuwa,A
+64,Kinship & Social Hierarchy,Aama ko Bhai ko Chori,Bhai,Baini,Bhai,Thulobuwa,B
+65,Kinship & Social Hierarchy,Aama ko Thulo Buwa,Dai / Bhai,Baini,Hajurbuwa,Thulobuwa,C
+66,Kinship & Social Hierarchy,Aama ko Thuli Aama,Dai / Bhai,Phupu,Maiju,Hajur Aama,D
+67,Kinship & Social Hierarchy,Aama ko Buhari,Dai / Bhai,Maiju,Phupu,Maiju,B
+68,Kinship & Social Hierarchy,Aama ko Hajur Aama,Phupu,Maiju,Jiju Hajur Aama,Maiju,C
+69,Kinship & Social Hierarchy,Chora ko Shrimati,Phupu,Maiju,Jiju Hajur Aama,Buhari,D
+70,Kinship & Social Hierarchy,Nati ko Shrimati,Naatini Buhari,Kaka,Bhai,Thulobuwa,A
+71,Kinship & Social Hierarchy,Naati ko Chora,Phupuaama,Panati,Phupu,Maiju,B
+72,Kinship & Social Hierarchy,Naati ko Chori,Bhatijo,Phupu,Maiju,Panatini,D
+73,Kinship & Social Hierarchy,Aama ko Kaka,Sali,Hajurbuwa,Phupu,Maiju,B
+74,Kinship & Social Hierarchy,Aama ko Kaki,Phupu,Maiju,Hajur Aama,Maiju,C
+75,Kinship & Social Hierarchy,Aama ko Kaka ko Chora,Mama,Kaka,Bhai,Thulobuwa,A
+76,Kinship & Social Hierarchy,Aama ko Kaka ko Chori,Phupu,Maiju,Sani Aama,Thulobuwa,C
+77,Kinship & Social Hierarchy,Aama ko Kaka ko Buhari,Kaka,Bhai,Thulobuwa,Maiju,D
+78,Kinship & Social Hierarchy,Aama ko Kaka ko Jwai,Kaka,Bhinaju,Phupu,Maiju,B
+79,Kinship & Social Hierarchy,Aama ko Kaka ko Naati,Phupu,Maiju,Bhai,Maiju,C
+80,Kinship & Social Hierarchy,Aama ko Kaka ko Naatini,Bahini,Baini,Sali,Kaki Aama,A
+81,Kinship & Social Hierarchy,Aama ko Phupu,Bahini,Phupu Amoii,Phupu,Maiju,B
+82,Kinship & Social Hierarchy,Aama ko Phupu ko Shriman,Kaka,Bhai,Thulobuwa,Phupaju,D
+83,Kinship & Social Hierarchy,Aama ko Sani Aama,Jiju Hajur Aama,Baini,Sali,Kaki Aama,A
+84,Kinship & Social Hierarchy,Aama ko Aamaju,Phupu Didi,Kaka,Bhai,Thulobuwa,A
+85,Kinship & Social Hierarchy,Aama ko Nanda,Phupuaama,Kaka,Phupu Didi,Thulobuwa,C
+86,Kinship & Social Hierarchy,Aama ko Phupu Sasu,Bhatijo,Phupu Amoii,Phupu Didi,Thulobuwa,B
+87,Kinship & Social Hierarchy,Aama ko Sani Phupu Sasu,Sali,Phupu Amoii,Phupu Amoii,Thulobuwa,C
+88,Kinship & Social Hierarchy,Aama ko Bhanij,Bhan Dai,Kaka,Bhai,Thulobuwa,A
+89,Kinship & Social Hierarchy,Aama ko Bhanji,Bhan Dai,Bhan Didi / Baini,Phupu,Maiju,B
+90,Kinship & Social Hierarchy,Aama ko Bhanij ka Chora,Phupu,Maiju,Bhatij,Maiju,C
+91,Kinship & Social Hierarchy,Aama ko Bhanij ko Chori,Kaka,Bhai,Thulobuwa,Bhatiji,D
+92,Kinship & Social Hierarchy,Aama ko Budha Mamaghar ko Hajuraama,Jiju Hajur Aama,Bhai,Thulobuwa,Bhatiji,A
+93,Kinship & Social Hierarchy,Aama ko Budha Mamaghar ko Hajurbuwa,Jiju Hajur Aama,Bhai,Jiju Hajurbuwa,Bhatiji,C
+94,Kinship & Social Hierarchy,Aama ko Mama ko Chora,Bhai,Baini,Sali,Kaki Aama,A
+95,Kinship & Social Hierarchy,Chora ko Chora,Bhai,Buhari,Naati,Kaki Aama,C
+96,Kinship & Social Hierarchy,Chora ko Chorilai,Kaka,Bhai,Thulobuwa,Naatini,D
+97,Kinship & Social Hierarchy,Chora ko Buhari,Naatini Buhari,Kaka,Bhai,Thulobuwa,A
+98,Kinship & Social Hierarchy,Chora ko Jwai,Naatini Buhari,Naatini Jwai,Bhai,Thulobuwa,B
+99,Kinship & Social Hierarchy,Chora ko Kaka,Naatini Buhari,Naatini Jwai,Bhai,Thulobuwa,C
+100,Kinship & Social Hierarchy,Chora ko Kaki,Kaka,Bhai,Thulobuwa,Kaki Aama,D
+101,Kinship & Social Hierarchy,Chora ko Kaka ko Chora,Bhai,Kaka,Bhai,Thulobuwa,A
+102,Kinship & Social Hierarchy,Chora ko Kaka ko Chori,Phupuaama,Kaka,Bhai,Baini,D
+103,Kinship & Social Hierarchy,Chora ko Phupu,Bhatijo,Baini,Bhai,Baini,B
+104,Kinship & Social Hierarchy,Chora ko Phupaju,Sali,Baini,Phupaju,Baini,C
+105,Kinship & Social Hierarchy,Chora ko Baini,Sali,Baini,Phupaju,Chori,D
+106,Kinship & Social Hierarchy,Chora ko Hajurbuwa,Buwa,Baini,Sali,Kaki Aama,A
+107,Kinship & Social Hierarchy,Chora ko Hajur Aama,Buwa,Aama,Sali,Kaki Aama,B
+108,Kinship & Social Hierarchy,Chora ko Thulobuwa,Buwa,Aama,Dai,Dai,C
+109,Kinship & Social Hierarchy,Chora ko Thuli Aama,Bhauju,Baini,Sali,Kaki Aama,A
+110,Kinship & Social Hierarchy,Chora ko Thulobuwa ko Chora,Bhauju,Bhatij,Sali,Kaki Aama,B
+111,Kinship & Social Hierarchy,Chora ko Thulobuwa ko Chori,Bhauju,Bhatij,Bhatiji,Kaki Aama,C
+112,Kinship & Social Hierarchy,Chora ko Thulobuwa ko Jwai,Jwai,Bhatij,Thuliaama,Kaki Aama,A
+113,Kinship & Social Hierarchy,Chora ko Phupu ko Chora,Phupuaama,Dai,Bhinaju,Kaki Aama,B
+114,Kinship & Social Hierarchy,Chora ko Phupu ko Shriman,Bhatijo,Bhatij,Thulobuwa,Bhinaju,D
+115,Kinship & Social Hierarchy,Chora ko Chori,Naatini,Dai,Bhinaju,Bhatij,A
+116,Kinship & Social Hierarchy,Chora ko Shrimati ko Buwa,Phupuaama,Samdhi,Thulobuwa,Bhatij,B
+117,Kinship & Social Hierarchy,Chora ko Shrimati ko Aama,Bhatijo,Bhatij,Samdhini,Dai,C
+118,Kinship & Social Hierarchy,Samdhi ko Aama,Sali,Bhatij,Thuliaama,Budi Samdhini,D
+119,Kinship & Social Hierarchy,Chora ko Sasura,Samdhi,Dai,Bhinaju,Budi Samdhini,A
+120,Kinship & Social Hierarchy,Chora ko Sasu,Samdhi,Samdhini,Thulobuwa,Budi Samdhini,B
+121,Kinship & Social Hierarchy,Samdhi ko Buwa,Samdhi,Samdhini,Thuliaama,Buda Samdhi,D
+122,Kinship & Social Hierarchy,Samdhi ko Daju,Thula Samdhi,Samdhini,Bhinaju,Buda Samdhi,A
+123,Kinship & Social Hierarchy,Chora ko Sali,Thula Samdhi,Buhari,Thulobuwa,Buda Samdhi,B
+124,Kinship & Social Hierarchy,Chora ko Salo,Thula Samdhi,Bhatij,Jwai,Buda Samdhi,C
+125,Kinship & Social Hierarchy,Chora ko Salo ko Shrimati,Chori,Bhatij,Thuliaama,Buda Samdhi,A
+126,Kinship & Social Hierarchy,Chori ko Phupu,Phupuaama,Dai,Bhinaju,Nanda,D
+127,Kinship & Social Hierarchy,Chori ko Aamaju,Bhatijo,Bhatij,Bhatij,Nanda,B
+128,Kinship & Social Hierarchy,Chora ko Samdhi,Sali,Bhatij,Bhatij,Samdhi,D
+129,Kinship & Social Hierarchy,Chori ko Kaka,Sali,Dai,Dai,Samdhi,B
+130,Kinship & Social Hierarchy,Chori ko Sasura,Sali,Thuliaama,Samdhi,Samdhi,C
+131,Kinship & Social Hierarchy,Chori ko Sasu,Samdhini,Bhinaju,Thuliaama,Samdhi,A
+132,Kinship & Social Hierarchy,Chori ko Bhai,Samdhini,Thulobuwa,Bhinaju,Chora,D
+133,Kinship & Social Hierarchy,Chori ko Bhinaju,Jwai,Thulobuwa,Thulobuwa,Chora,A
+134,Kinship & Social Hierarchy,Chori ko Chora,Sali,Naati,Thulobuwa,Chora,B
+135,Kinship & Social Hierarchy,Chori ko Jwai,Samdhini,Thuliaama,Naatini Jwai,Chora,C
+136,Kinship & Social Hierarchy,Naati ko Shrimati,Samdhini,Bhinaju,Naatini Jwai,Naatini Buhari,D
+137,Kinship & Social Hierarchy,Chori ko Chori,Jwai,Thuliaama,Naatini,Naatini Buhari,C
+138,Kinship & Social Hierarchy,Naatini ko Shriman,Naatini Jwai,Bhinaju,Thuliaama,Naatini Buhari,A
+139,Kinship & Social Hierarchy,Naati ko Shrimati,Naatini Jwai,Thulobuwa,Bhinaju,Naatini Buhari,D
+140,Kinship & Social Hierarchy,Chori ko Nanda,Naatini Jwai,Thulobuwa,Thulobuwa,Naatini Buhari,
+141,Kinship & Social Hierarchy,Chori ko Devar,Jwai,Thulobuwa,Thulobuwa,Naatini Buhari,A
+142,Kinship & Social Hierarchy,Budhi / Budha ko Chora,Jwai,Chora,Thulobuwa,Naatini Buhari,B
+143,Kinship & Social Hierarchy,Naati ko Chori,Panatini,Thuliaama,Thulobuwa,Panati,A
+144,Kinship & Social Hierarchy,Panati ko Chora,Janati,Bhinaju,Thulobuwa,Panati,A
+145,Kinship & Social Hierarchy,Panati ko Chori,Phupuaama,Thulobuwa,Janatini,Panati,C
+146,Kinship & Social Hierarchy,Janati ko Chora,Bhatijo,Khanati,Janatini,Panati,B
+147,Kinship & Social Hierarchy,Janati ko Chori,Sali,Thuliaama,Janatini,Khanatini,D
+148,Kinship & Social Hierarchy,Panati ko Shrimati,Naatini Buhari,Thulobuwa,Thuliaama,Panatini Buhari,D
+149,Kinship & Social Hierarchy,Panatini ko Shriman,Panatini Jwai,Thulobuwa,Bhinaju,Panatini Buhari,A
+150,Kinship & Social Hierarchy,Janati ko Shrimati,Phupuaama,Janatini Buhari,Thulobuwa,Panatini Buhari,B
+151,Kinship & Social Hierarchy,Janatini ko Shriman,Bhatijo,Janatini Buhari,Thuliaama,Janatini Jwai,D
+152,Kinship & Social Hierarchy,Khanatini ko Shriman,Sali,Khanati Jwai,Bhinaju,Janatini Jwai,B
+153,Kinship & Social Hierarchy,Khanati ko Shrimati,Phupuaama,Khanati Jwai,Thulobuwa,Khanatini Buhari,D
+154,Kinship & Social Hierarchy,Sasura ko Didi,Bhatijo,Phupu Sasu,Thuliaama,Khanatini Buhari,B
+155,Kinship & Social Hierarchy,Sasura ko Baini,Sali,Phupu Sasu,Bhinaju,Phupu Sasu,D
+156,Kinship & Social Hierarchy,Sasura ko Bhai,Sali,Kaka Sasura,Thulobuwa,Phupu Sasu,B
+157,Kinship & Social Hierarchy,Sasura ko Dai,Sali,Thuliaama,Thulobuwa,Jetha Sasura,D
+158,Kinship & Social Hierarchy,Sasura ko Bhauju,Jethi Sasu,Bhinaju,Thulobuwa,Jetha Sasura,A
+159,Kinship & Social Hierarchy,Sasura ka Jetha Bau,Jethi Sasu,Thulobuwa,Jetha Budha Sasura,Jetha Sasura,C
+160,Kinship & Social Hierarchy,Sasura ko Jethi Aama,Budi Sasu,Thulobuwa,Jetha Budha Sasura,Jetha Sasura,A
+161,Kinship & Social Hierarchy,Sasura ka Kaka Buwa,Bhauju,Thulobuwa,Jetha Budha Sasura,Kanchha Sasura,D
+162,Kinship & Social Hierarchy,Sasura ka Buhari,Chora,Kanchhi Sasu,Jetha Budha Sasura,Kanchha Sasura,B
+163,Kinship & Social Hierarchy,Dai ko Shrimati,Bhatiji,Kanchhi Sasu,Bhauju,Kanchha Sasura,C
+164,Kinship & Social Hierarchy,Dai ko Chori,Bhatijo,Kanchhi Sasu,Bhauju,Bhatiji,D
+165,Kinship & Social Hierarchy,Dai ko Chori ko Shriman,Phupuaama,Bhatij Jwai,Bhauju,Bhatiji,B
+166,Kinship & Social Hierarchy,Dai ko Chora,Bhatijo,Thuliaama,Bhauju,Bhatiji,D
+167,Kinship & Social Hierarchy,Dai ko Buhari,Sali,Bhinaju,Bhatiji Buhari,Bhatiji,C
+168,Kinship & Social Hierarchy,Dai ko Sasura,Sasura,Thulobuwa,Thuliaama,Bhatiji,A
+169,Kinship & Social Hierarchy,Dai ko Sasu,Phupuaama,Thulobuwa,Bhinaju,Sasu,D
+170,Kinship & Social Hierarchy,Dai ko Sali,Bhatijo,Soltini,Thulobuwa,Sasu,B
+171,Kinship & Social Hierarchy,Dai ko Salo,Sali,Soltini,Thulobuwa,Solta,D
+172,Kinship & Social Hierarchy,Bhai ko Shrimati,Buhari,Bhauju,Soltini,Thulobuwa,A
+173,Kinship & Social Hierarchy,Budha ko Didi,Buhari,Chora,Aamaju,Thulobuwa,C
+174,Kinship & Social Hierarchy,Budha ko Baini,Nanda,Bhatiji,Soltini,Thulobuwa,A
+175,Kinship & Social Hierarchy,Budha ko Phupu,Nanda,Bhatijo,Soltini,Phupu Sasu,D
+176,Kinship & Social Hierarchy,Budha ko Phupaju,Nanda,Bhauju,Soltini,Phupu Sasu,A
+177,Kinship & Social Hierarchy,Budha ko Kaka,Nanda,Chora,Kaka Sasura,Phupu Sasu,C
+178,Kinship & Social Hierarchy,Budha ko Bhai,Nanda,Bhatiji,Kaka Sasura,Phupu Sasu,D
+179,Kinship & Social Hierarchy,Budha ko Dai,Jethaju,Bhatijo,Kaka Sasura,Phupu Sasu,A
+180,Kinship & Social Hierarchy,Devar ko Shrimati,Jethaju,Deurani,Kaka Sasura,Phupu Sasu,B
+181,Kinship & Social Hierarchy,Jethaju ko Shrimati,Jethaju,Deurani,Kaka Sasura,Jethani,D
+182,Kinship & Social Hierarchy,Budha ko Saniaama,Jethaju,Sanime Sasu,Kaka Sasura,Jethani,B
+183,Kinship & Social Hierarchy,Budha ko Mama,Jethaju,Sanime Sasu,Kaka Sasura,Mama Sasura,D
+184,Kinship & Social Hierarchy,Budha ko Maiju,Budha ko Maiju,Sanime Sasu,Kaka Sasura,Mama Sasura,A
+185,Kinship & Social Hierarchy,Budha ko Bhauju,Budha ko Maiju,Sanime Sasu,Jethani,Mama Sasura,C
+186,Kinship & Social Hierarchy,Budhi ko Dai,Budha ko Maiju,Sanime Sasu,Jethani,Jethan,D
+187,Kinship & Social Hierarchy,Budhi ko Bhai,Salo,Sanime Sasu,Jethani,Jethan,A
+188,Kinship & Social Hierarchy,Budhi ko Devar,Phupuaama,Bhai,Jethani,Jethan,B
+189,Kinship & Social Hierarchy,Budhi ko Bhauju,Bhatijo,Sanime Sasu,Jethani Didi,Jethan,C
+190,Kinship & Social Hierarchy,Budhi ko Bhada,Sali,Sanime Sasu,Jethani Didi,Bhada Salo,D
+191,Kinship & Social Hierarchy,Budhi ko Bhadai,Bhadai Sali,Sanime Sasu,Jethani Didi,Bhada Salo,A
+192,Kinship & Social Hierarchy,Budhi ko Bhadai ko Shriman,Phupuaama,Bhai,Bhada Jwai,Bhada Salo,C
+193,Kinship & Social Hierarchy,Dai ko Chori,Bhatijo,Bhadai,Bhada Jwai,Bhada Salo,B
+194,Kinship & Social Hierarchy,Budhi ko Aamaju,Sali,Didi,Bhada Jwai,Bhada Bhai,B
+195,Kinship & Social Hierarchy,Aamaju ko Shriman,Sali,Sanime Sasu,Bhinaju,Bhada Bhai,C
+196,Kinship & Social Hierarchy,Nanda ko Shriman,Jwai,Sanime Sasu,Sanime Sasu,Bhada Bhai,A
+197,Kinship & Social Hierarchy,Budhi ko Aamaju ko Shriman,Bhauju,Sanime Sasu,Sanime Sasu,Bhinaju,D
+198,Kinship & Social Hierarchy,Mama ko Didi,Chora,Bhai,Sanime Sasu,Bhinaju,B
+199,Kinship & Social Hierarchy,Mama ko Shrimati,Bhatiji,Bhai,Bhai,Maiju,D
+200,Kinship & Social Hierarchy,Mama ko Buwa,Bhatijo,Hajurbuwa,Sanime Sasu,Maiju,B
+201,Kinship & Social Hierarchy,Mama ko Sani Aama,Phupuaama,Hajurbuwa,Sanime Sasu,Sani Aama,D
+202,Kinship & Social Hierarchy,Sani Aama ko Shriman,Bhatijo,Sano Buwa,Sanime Sasu,Sani Aama,B
+203,Kinship & Social Hierarchy,Thuli Aama ko Shriman,Sali,Sano Buwa,Bhai,Thulo Buwa,D
+204,Kinship & Social Hierarchy,Jethan ko Chora,Bhada Salo,Sano Buwa,Sanime Sasu,Thulo Buwa,A
+205,Kinship & Social Hierarchy,Buhari ko Buwa,Bhada Salo,Samdhi,Sanime Sasu,Thulo Buwa,B
+206,Kinship & Social Hierarchy,Buhari ko Thulobuwa,Bhada Salo,Samdhi,Sanime Sasu,Thulo Samdhi,D
+207,Kinship & Social Hierarchy,Buhari ko Thuli Aama,Thuli Samdhini,Samdhi,Bhai,Thulo Samdhi,A
+208,Kinship & Social Hierarchy,Bhanji ko Shriman,Phupuaama,Bhanji Jwai,Bhai,Thulo Samdhi,B
+209,Kinship & Social Hierarchy,Buhari ko Kaka,Bhatijo,Bhanji Jwai,Kanchha Samdhi,Thulo Samdhi,C
+210,Kinship & Social Hierarchy,Buhari ko Kanchhi Sasu,Sali,Kanchhi Samdhini,Kanchha Samdhi,Thulo Samdhi,B
+211,Kinship & Social Hierarchy,Buhari ko Thulobuwa ko Chori lai,Sali,Sanime Sasu,Kanchha Samdhi,Kanchha Samdhi,D
+212,Kinship & Social Hierarchy,Hajur Aama ko Didi,Thulo Hajur Aama,Sanime Sasu,Kanchha Samdhi,Kanchha Samdhi,A
+213,Kinship & Social Hierarchy,Hajur Aama ko Baini lai,Thulo Hajur Aama,Sanime Sasu,Sani Aama,Sani Aama,C
+214,Kinship & Social Hierarchy,Hajur Aama ko Chora,Thulo Hajur Aama,Bhai,Sani Aama,Sani Aama,A
+215,Kinship & Social Hierarchy,Hajur Aama ko Chori,Thulo Hajur Aama,Bhai,Sanime Sasu,Sani Aama / Thuli Aama,D
+216,Kinship & Social Hierarchy,Bhanji ko Chora,Naati,Bhai,Sanime Sasu,Sani Aama / Thuli Aama,A
+217,Kinship & Social Hierarchy,Bhanji ko Chori,Chora,Bhanji Jwai,Bhai,Naatini,D
+218,Kinship & Social Hierarchy,Bhanji ko Buhari,Bhatiji,Naatini Buhari,Bhai,Naatini,B
+219,Kinship & Social Hierarchy,Bhanji ko Jwai,Bhatijo,Naatini Buhari,Bhai,Bhanji Jwai,D
+220,Kinship & Social Hierarchy,Bhanji ko Naati,Phupuaama,Panati,Bhai,Bhanji Jwai,B
+221,Kinship & Social Hierarchy,Budha Mamaghar Hajuraama ko Buwa,Bhatijo,Panati,Budha Hajur Buwa,Bhanji Jwai,C
+222,Kinship & Social Hierarchy,Budha Mamaghar Hajuraama ko Aama,Sali,Panati,Budha Hajur Buwa,Budi Hajuraama,D
+223,Kinship & Social Hierarchy,Budha Mamaghar Hajuraama ko Chora,Budha Mama Hajur Buwa,Panati,Budha Hajur Buwa,Budi Hajuraama,A
+224,Kinship & Social Hierarchy,Budha Mamaghar Hajuraama ko Chori,Bhauju,Budi Hajur Aama,Bhauju,Budi Hajuraama,B
+225,Kinship & Social Hierarchy,Budha Mamaghar Hajuraama ko Naati,Chora,Budi Hajur Aama,Chora,Hajurbuwa,D
+226,Kinship & Social Hierarchy,Mamaghar Hajur Aama ko Didi,Bhatiji,Jethani Didi,Bhatiji,Hajurbuwa,B
+227,Kinship & Social Hierarchy,Shrimati ko Jwai,Bhatijo,Bhatijo,Bhatijo,Sadh Bhai,D
+228,Kinship & Social Hierarchy,Shrimati ko Bhinaju,Phupuaama,Sadhe Daju,Bhauju,Sadh Bhai,B
+229,Kinship & Social Hierarchy,Sadh Bhai ko Chora,Sadhe Daju,Jethani Didi,Chora,Bhatij,D
+230,Kinship & Social Hierarchy,Shrimati ko Mama,Mama Sasura,Bhatijo,Bhatiji,Bhatij,A
+231,Kinship & Social Hierarchy,Shrimati ko Maiju,Phupuaama,Sadhe Daju,Bhatijo,Maiju Sasu,D
+232,Kinship & Social Hierarchy,Shrimati ko Baini,Bhatijo,Sali,Bhatijo,Maiju Sasu,B
+233,Kinship & Social Hierarchy,Shrimati ko Baini ko Chora,Sali,Sali,Bhatij,Maiju Sasu,C
+234,Kinship & Social Hierarchy,Bhanijka Chora/Chori,Naati/Naatini,Sali,Bhatij,Maiju Sasu,A
+235,Kinship & Social Hierarchy,Mamaghar Hajur Buwa Phupu,Budi Phupu Hajur Aama,Sali,Bhatij,Budi Phupu Hajur Aama,D

@@ -1,0 +1,40 @@
+# Secrets: never commit real environment files (examples are kept)
+.env
+.env.*
+!.env.example
+*.pem
+
+# Paper drafts and Word documents (kept local only)
+paper1/
+*.docx
+*.doc
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Node / frontend
+node_modules/
+dist/
+.vercel/
+.npm-tmp/
+npm-debug.log*
+
+# Local databases, logs, temp files
+*.db
+*.sqlite3
+*.log
+
+# Office lock files and OS clutter
+~$*
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/

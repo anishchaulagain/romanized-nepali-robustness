@@ -1,0 +1,236 @@
+ID,Category,Question (Nepali),A,B,C,D,Correct Option
+1,Kinship & Social Hierarchy,बुवा को बुवा,हजुरबुवा,ठुलोबुवा,मामा,दाइ,A
+2,Kinship & Social Hierarchy,बुवा को आमा,माइजु,हजुरआमा,ठुलिआमा,सानीआमा,B
+3,Kinship & Social Hierarchy,बुवा को भाइ,मामा,भतिजो,भीनाजु,काका,D
+4,Kinship & Social Hierarchy,बुवा को दाई,भदा,भाइ,ठुलोबुवा,भतिजो,C
+5,Kinship & Social Hierarchy,बुवा को दिदि,ठुलिआमा,फुपू,माइजु,भान्जी,B
+6,Kinship & Social Hierarchy,बुवा को काका,काकाबाउ / काकाबुवा,भिनाजु,सालो,मामा,A
+7,Kinship & Social Hierarchy,बुवा को काकी,बैनी,साली,काकी आमा,भतिजी,C
+8,Kinship & Social Hierarchy,बुवा को भिनाजु,आमाजू,सालो,छोरा,फुपाजु,D
+9,Kinship & Social Hierarchy,बुवा को ज्वाइँ,काका,फुपाजु,भतिजो,भदा,B
+10,Kinship & Social Hierarchy,बुवा को फुपू,सालो,नन्द,काकी आमा,फुपूआमा,D
+11,Kinship & Social Hierarchy,बुवा को फुपू को छोरा,दाइ,भतिजो,मामा,भाइ,A
+12,Kinship & Social Hierarchy,बुवा को फुपू को बुहारी,बुहारी,फुपूआमा,भाउजु,फुपू,C
+13,Kinship & Social Hierarchy,बुवा को फुपू को नाती,भान्जी,भतिजो,छोरा,भाइ,B
+14,Kinship & Social Hierarchy,बुवा को फुपू को नातिनी,बैनी,साली,भतिजी,भान्जी,C
+15,Kinship & Social Hierarchy,बुवा को फुपू को नातिनी ज्वाइँ,काका,ज्वाइँ,भतिजो,छोरा,B
+16,Kinship & Social Hierarchy,बुवा को छोरा,दाई,बुहारी,छोरा,ठुलोबुवा,A
+17,Kinship & Social Hierarchy,बुवा को छोरी,काका,दिदि,भाई,भाउजु,B
+18,Kinship & Social Hierarchy,बुवा को भानिज,हजुरबुवा ,दाई / भाई,दिदि / बैनी,भतिजी,B
+19,Kinship & Social Hierarchy,बुवा को भान्जी,हजुरबुवा ,दिदि / बैनी,काका,भतिजो,B
+20,Kinship & Social Hierarchy,बुवा को सालो,हजुरबुवा ,काका,मामा,काका,C
+21,Kinship & Social Hierarchy,बुवा को साली,सानीआमा,काका,दिदि / बैनी,ठुली आमा,A
+22,Kinship & Social Hierarchy,बुवा को श्रीमती,हजुर आमा,काका,आमा,छोरा / भतिजो,C
+23,Kinship & Social Hierarchy,बुवा को जेठी सासु,काका,भाई,ठुलोबुवा,ठुली आमा,D
+24,Kinship & Social Hierarchy,बुवा को कान्छी सासु,हजुर आमा,काका,काका,भाइ,A
+25,Kinship & Social Hierarchy,बुवा को नाती,छोरी भतिजी,छोरा / भतिजो,काका,भान्जी,B
+26,Kinship & Social Hierarchy,बुवा को नातीनि,छोरी भतिजी,भाई,छोरा,छोरा,A
+27,Kinship & Social Hierarchy,बुवा को भाइ को श्रीमती,काका,भाई,ठुलोबुवा,काका,C
+28,Kinship & Social Hierarchy,बुवा को भाई को छोरा,काका,भाई,ठुलोबुवा,दाई / भाई,D
+29,Kinship & Social Hierarchy,बुवा को भाई को छोरी,ठुलोबुवा,दिदि / बैनी,काका,काका,B
+30,Kinship & Social Hierarchy,बुवा को भाई को छोरी को श्रीमान,भिनाजु / ज्वाई,काका,भाई,ठुलोबुवा,A
+31,Kinship & Social Hierarchy,बुवा को भाई को छोरा को श्रीमती,भाउजु,भाउजु / बुहारी,काका,काका,B
+32,Kinship & Social Hierarchy,बुवा को दिदि को श्रीमान,छोरा,काका,फुपाजु,फुपाजु,D
+33,Kinship & Social Hierarchy,बुवा को श्रीमती को आमा,भतिजी,हजुर आमा,फुपाजु,भान दाई / भाई,B
+34,Kinship & Social Hierarchy,बुवा को सासु को आमा,भतिजो,फुपाजु,भान दाई / भाई,हजुर आमा,D
+35,Kinship & Social Hierarchy,फुपू को श्रीमान,भतिजो,फुपाजु,फुपाजु,हजुर आमा,B
+36,Kinship & Social Hierarchy,बुवा को दिदि को छोरा,भाई,ठुलोबुवा,भान दाई / भाई,फुपू,C
+37,Kinship & Social Hierarchy,बुवा को दिदि को छोरी,भान दिदि / बैनी,काका,भाई,ठुलोबुवा,A
+38,Kinship & Social Hierarchy,बुवा को बैनी,भान दिदि / बैनी,फुपाजु,फुपू,ठुलोबुवा,C
+39,Kinship & Social Hierarchy,बुवा को बैनी को श्रीमान,फुपाजु,बुहारी,छोरा,ठुलोबुवा,A
+40,Kinship & Social Hierarchy,बुवा को बैनी को छोरी,फुपूआमा,भान दिदि / बैनी,फुपाजु,भाई,B
+41,Kinship & Social Hierarchy,बुवा को बैनी को छोरा,भतिजो,फुपाजु,भान दाई / भाई,फुपू,C
+42,Kinship & Social Hierarchy,बुवा को हजुरबुवा,साली,जिजु  हजुरबुवा,फुपाजु,छोरा,B
+43,Kinship & Social Hierarchy,बुवा को हजुरआमा,जिजु  हजुर आमा,फुपाजु,भाई,ठुलोबुवा,A
+44,Kinship & Social Hierarchy,बुवा को ससुरा,फुपूआमा,हजुरबुवा,फुपाजु,ठुलोबुवा,B
+45,Kinship & Social Hierarchy,बुवा को सासु,भतिजो,फुपाजु,फुपाजु,हजुरआमा,D
+46,Kinship & Social Hierarchy,आमा को हजुरबुवा ,साली,जिजु  हजुरबुवा,फुपाजु,हजुरआमा,B
+47,Kinship & Social Hierarchy,आमा को  हजुरआमा,जिजु  हजुरबुवा,फुपाजु,हजुरबुवा,जिजु  हजुर आमा,D
+48,Kinship & Social Hierarchy,आमा को दिदि ,ठुली आमा ,फुपाजु,फुपाजु,फुपाजु,A
+49,Kinship & Social Hierarchy,आमा को बैनी  ,जिजु  हजुरबुवा,फुपाजु,सानी  आमा ,फुपाजु,C
+50,Kinship & Social Hierarchy,आमा को दिदि को श्रीमान ,ठुलोबुवा,फुपाजु,फुपाजु,फुपाजु,A
+51,Kinship & Social Hierarchy,आमा को बैनी को श्रीमान ,दाई / भाई,फुपाजु,सानो बुवा,दाई / भाई,C
+52,Kinship & Social Hierarchy,आमा को दिदि को छोरा ,दाई / भाई,दाई / भाई,सानो बुवा,दाई / भाई,A
+53,Kinship & Social Hierarchy,आमा को बैनी को छोरा ,भाउजु,दाई / भाई,सानो बुवा,दाई / भाई,D
+54,Kinship & Social Hierarchy,आमा को दिदि को ज्वाई ,छोरा,भिनाजु ,छोरा,भिनाजु ,B
+55,Kinship & Social Hierarchy,आमा को बैनी को ज्वाई ,भतिजी,ठुलिआमा,ज्वाई,भिनाजु ,C
+56,Kinship & Social Hierarchy,आमा को मामा ,भतिजो,भीनाजु,फुपाजु,हजुरबुवा ,D
+57,Kinship & Social Hierarchy,आमा को माइजु ,हजुर आमा ,ठुलोबुवा,फुपाजु,हजुरबुवा ,A
+58,Kinship & Social Hierarchy,आमा को मामा घर को हजुर बुवा,हजुर आमा ,जिजु  हजुरबुवा,फुपाजु,हजुरबुवा ,B
+59,Kinship & Social Hierarchy,आमा को मामा घर को हजुर आमा,हजुर आमा ,जिजु  हजुरबुवा,दाई / भाई,जिजु  हजुर आमा,D
+60,Kinship & Social Hierarchy,जिजु  हजुर आमा का दिदि / बैनी,जिजु  हजुर आमा,जिजु  हजुरबुवा,दाई / भाई,जिजु  हजुर आमा,A
+61,Kinship & Social Hierarchy,आमा को भाई ,जिजु  हजुर आमा,मामा ,दाई / भाई,जिजु  हजुर आमा,B
+62,Kinship & Social Hierarchy,आमा को दाई ,जिजु  हजुर आमा,मामा ,दाई / भाई,मामा ,D
+63,Kinship & Social Hierarchy,आमा को भाई को छोरा ,भाई,काका,भाई,ठुलोबुवा,A
+64,Kinship & Social Hierarchy,आमा को भाई को छोरी  ,भाई,बैनी ,भाई,ठुलोबुवा,B
+65,Kinship & Social Hierarchy,आमा को ठुलो बुवा ,दाई / भाई,बैनी ,हजुरबुवा ,ठुलोबुवा,C
+66,Kinship & Social Hierarchy,आमा को ठुली आमा  ,दाई / भाई,फुपू,माइजु,हजुर आमा ,D
+67,Kinship & Social Hierarchy,आमा को बुहारी ,दाई / भाई,माइजु ,फुपू,माइजु,B
+68,Kinship & Social Hierarchy,आमा को हजुर आमा ,फुपू,माइजु,जिजु  हजुर आमा ,माइजु,C
+69,Kinship & Social Hierarchy,छोरा को श्रीमती ,फुपू,माइजु,जिजु  हजुर आमा ,बुहारी ,D
+70,Kinship & Social Hierarchy,नाति को श्रीमती ,नातिनी बुहारी ,काका,भाई,ठुलोबुवा,A
+71,Kinship & Social Hierarchy,नाती को छोरा ,फुपूआमा,पनाति  ,फुपू,माइजु,B
+72,Kinship & Social Hierarchy,नाती को छोरी  ,भतिजो,फुपू,माइजु,पनातिनी,D
+73,Kinship & Social Hierarchy,आमा को काका ,साली,हजुरबुवा ,फुपू,माइजु,B
+74,Kinship & Social Hierarchy,आमा को काकी ,फुपू,माइजु,हजुर आमा ,माइजु,C
+75,Kinship & Social Hierarchy,आमा को काका को छोरा ,मामा ,काका,भाई,ठुलोबुवा,A
+76,Kinship & Social Hierarchy,आमा को काका को छोरी ,फुपू,माइजु,सानी आमा ,ठुलोबुवा,C
+77,Kinship & Social Hierarchy,आमा को काका को बुहारी ,काका,भाई,ठुलोबुवा,माइजु ,D
+78,Kinship & Social Hierarchy,आमा को काका को ज्वाई ,काका,भिनाजु ,फुपू,माइजु,B
+79,Kinship & Social Hierarchy,आमा को काका को नाती ,फुपू,माइजु,भाई ,माइजु,C
+80,Kinship & Social Hierarchy,आमा को काका को नातीनि ,बहिनी ,बैनी,साली,काकी आमा,A
+81,Kinship & Social Hierarchy,आमा को फुपू ,बहिनी ,फुपू आमोई  ,फुपू,माइजु,B
+82,Kinship & Social Hierarchy,आमा को फुपू को श्रीमान ,काका,भाई,ठुलोबुवा,फुपाजु ,D
+83,Kinship & Social Hierarchy,आमा को सानी आमा ,जिजु  हजुर आमा ,बैनी,साली,काकी आमा,A
+84,Kinship & Social Hierarchy,आमा को आमाजू ,फुपू दिदि ,काका,भाई,ठुलोबुवा,A
+85,Kinship & Social Hierarchy,आमा को नन्द ,फुपूआमा,काका,फुपू दिदि ,ठुलोबुवा,C
+86,Kinship & Social Hierarchy,आमा को फुपू सासु ,भतिजो,फुपू अमोई ,फुपू दिदि ,ठुलोबुवा,B
+87,Kinship & Social Hierarchy,आमा को सानी फुपू सासु ,साली,फुपू अमोई ,फुपू अमोई ,ठुलोबुवा,C
+88,Kinship & Social Hierarchy,आमा को भानिज ,भान दाई ,काका,भाई,ठुलोबुवा,A
+89,Kinship & Social Hierarchy,आमा को भान्जी ,भान दाई ,भान दिदि / बैनी,फुपू,माइजु,B
+90,Kinship & Social Hierarchy,आमा को भानिज का छोरा ,फुपू,माइजु,भतिज ,माइजु,C
+91,Kinship & Social Hierarchy,आमा को भानिज को छोरी  ,काका,भाई,ठुलोबुवा,भतिजी ,D
+92,Kinship & Social Hierarchy,आमा को बुढा मामाघर को  हजुरआमा,जिजु  हजुर आमा ,भाई,ठुलोबुवा,भतिजी ,A
+93,Kinship & Social Hierarchy,आमा को बुढा मामाघर को  हजुरबुवा ,जिजु  हजुर आमा ,भाई,जिजु  हजुरबुवा ,भतिजी ,C
+94,Kinship & Social Hierarchy,आमा को मामा को छोरा ,भाई ,बैनी,साली,काकी आमा,A
+95,Kinship & Social Hierarchy,छोरा को छोरा ,भाई ,बुहारी ,नाती ,काकी आमा,C
+96,Kinship & Social Hierarchy,छोरा को छोरीलाइ  ,काका,भाई,ठुलोबुवा,नातिनी,D
+97,Kinship & Social Hierarchy,छोरा को बुहारी ,नातिनी बुहारी ,काका,भाई,ठुलोबुवा,A
+98,Kinship & Social Hierarchy,छोरा को ज्वाई ,नातिनी बुहारी ,नातिनी ज्वाई ,भाई,ठुलोबुवा,B
+99,Kinship & Social Hierarchy,छोरा को काका ,नातिनी बुहारी ,नातिनी ज्वाई ,भाई ,ठुलोबुवा,C
+100,Kinship & Social Hierarchy,छोरा को काकी ,काका,भाई,ठुलोबुवा,काकी आमा ,D
+101,Kinship & Social Hierarchy,छोरा को काका को छोरा ,भाई ,काका,भाई,ठुलोबुवा,A
+102,Kinship & Social Hierarchy,छोरा को काका को छोरी  ,फुपूआमा,काका,भाई,बैनी ,D
+103,Kinship & Social Hierarchy,छोरा को फुपू ,भतिजो,बैनी ,भाई,बैनी ,B
+104,Kinship & Social Hierarchy,छोरा को फुपाजु ,साली,बैनी ,फुपाजु ,बैनी ,C
+105,Kinship & Social Hierarchy,छोरा को बैनी ,साली,बैनी ,फुपाजु ,छोरी ,D
+106,Kinship & Social Hierarchy,छोरा को हजुरबुवा ,बुवा ,बैनी,साली,काकी आमा,A
+107,Kinship & Social Hierarchy,छोरा को हजुर आमा ,बुवा ,आमा ,साली,काकी आमा,B
+108,Kinship & Social Hierarchy,छोरा को ठुलोबुवा ,बुवा ,आमा ,दाई ,दाई ,C
+109,Kinship & Social Hierarchy,छोरा को ठुली आमा ,भाउजु ,बैनी,साली,काकी आमा,A
+110,Kinship & Social Hierarchy,छोरा को ठुलोबुवा को छोरा ,भाउजु ,भतिज ,साली,काकी आमा,B
+111,Kinship & Social Hierarchy,छोरा को ठुलोबुवा को छोरी ,भाउजु ,भतिज ,भतिजी ,काकी आमा,C
+112,Kinship & Social Hierarchy,छोरा को ठुलोबुवा को ज्वाई ,ज्वाई ,भतिज ,ठुलिआमा,काकी आमा,A
+113,Kinship & Social Hierarchy,छोरा को फुपू को छोरा  ,फुपूआमा,दाई ,भीनाजु,काकी आमा,B
+114,Kinship & Social Hierarchy,छोरा को फुपू को श्रीमान   ,भतिजो,भतिज ,ठुलोबुवा,भिनाजु ,D
+115,Kinship & Social Hierarchy,छोरा को छोरी ,नातिनी ,दाई ,भीनाजु,भतिज ,A
+116,Kinship & Social Hierarchy,छोरा को श्रीमती को बुवा ,फुपूआमा,सम्धी ,ठुलोबुवा,भतिज ,B
+117,Kinship & Social Hierarchy,छोरा को श्रीमती को आमा  ,भतिजो,भतिज ,सम्धिनी ,दाई ,C
+118,Kinship & Social Hierarchy,सम्धी को आमा ,साली,भतिज ,ठुलिआमा,बुडी सम्धिनी ,D
+119,Kinship & Social Hierarchy,छोरा को ससुरा ,सम्धी ,दाई ,भीनाजु,बुडी सम्धिनी ,A
+120,Kinship & Social Hierarchy,छोरा को सासु ,सम्धी ,सम्धिनी ,ठुलोबुवा,बुडी सम्धिनी ,B
+121,Kinship & Social Hierarchy,सम्धी को बुवा  ,सम्धी ,सम्धिनी ,ठुलिआमा,बुदा सम्धी ,D
+122,Kinship & Social Hierarchy,सम्धी को दाजु ,ठुला सम्धी ,सम्धिनी ,भीनाजु,बुदा सम्धी ,A
+123,Kinship & Social Hierarchy,छोरा को साली ,ठुला सम्धी ,बुहारी ,ठुलोबुवा,बुदा सम्धी ,B
+124,Kinship & Social Hierarchy,छोरा को सालो ,ठुला सम्धी ,भतिज ,ज्वाई ,बुदा सम्धी ,C
+125,Kinship & Social Hierarchy,छोरा को सालो को श्रीमती ,छोरी ,भतिज ,ठुलिआमा,बुदा सम्धी ,A
+126,Kinship & Social Hierarchy,छोरी को फुपू ,फुपूआमा,दाई ,भीनाजु,नन्द ,D
+127,Kinship & Social Hierarchy,छोरी को आमाजू ,भतिजो,भतिज ,भतिज ,नन्द ,B
+128,Kinship & Social Hierarchy,छोरा को सम्धी ,साली,भतिज ,भतिज ,सम्धी ,D
+129,Kinship & Social Hierarchy,छोरी को काका ,साली,दाई ,दाई ,सम्धी ,B
+130,Kinship & Social Hierarchy,छोरी को ससुरा ,साली,ठुलिआमा,सम्धी ,सम्धी ,C
+131,Kinship & Social Hierarchy,छोरी को सासु ,सम्धिनी ,भीनाजु,ठुलिआमा,सम्धी ,A
+132,Kinship & Social Hierarchy,छोरी को भाई ,सम्धिनी ,ठुलोबुवा,भीनाजु,छोरा ,D
+133,Kinship & Social Hierarchy,छोरी को भिनाजु ,ज्वाई ,ठुलोबुवा,ठुलोबुवा,छोरा ,A
+134,Kinship & Social Hierarchy,छोरी को छोरा ,साली,नाती ,ठुलोबुवा,छोरा ,B
+135,Kinship & Social Hierarchy,छोरी को ज्वाई ,सम्धिनी ,ठुलिआमा,नातिनी ज्वाई ,छोरा ,C
+136,Kinship & Social Hierarchy,नाती को श्रीमती ,सम्धिनी ,भीनाजु,नातिनी ज्वाई ,नातिनी बुहारी ,D
+137,Kinship & Social Hierarchy,छोरी को छोरी ,ज्वाई ,ठुलिआमा,नातिनी ,नातिनी बुहारी ,C
+138,Kinship & Social Hierarchy,नातिनी को श्रीमान ,नातिनी ज्वाई ,भीनाजु,ठुलिआमा,नातिनी बुहारी ,A
+139,Kinship & Social Hierarchy,नाती को  श्रीमती ,नातिनी ज्वाई ,ठुलोबुवा,भीनाजु,नातिनी बुहारी ,D
+140,Kinship & Social Hierarchy,छोरी को नन्द ,नातिनी ज्वाई ,ठुलोबुवा,ठुलोबुवा,नातिनी बुहारी ,
+141,Kinship & Social Hierarchy,छोरी को देवर ,ज्वाई ,ठुलोबुवा,ठुलोबुवा,नातिनी बुहारी ,A
+142,Kinship & Social Hierarchy,बुढी / बुढा  को छोरा ,ज्वाई ,छोरा ,ठुलोबुवा,नातिनी बुहारी ,B
+143,Kinship & Social Hierarchy,नाती को छोरी ,पनातिनी ,ठुलिआमा,ठुलोबुवा,पनाति ,A
+144,Kinship & Social Hierarchy,पनाति को छोरा ,जनाती ,भीनाजु,ठुलोबुवा,पनाति ,A
+145,Kinship & Social Hierarchy,पनाति को छोरी ,फुपूआमा,ठुलोबुवा,जनातिनी ,पनाति ,C
+146,Kinship & Social Hierarchy,जनाती को छोरा ,भतिजो,खनाति ,जनातिनी ,पनाति ,B
+147,Kinship & Social Hierarchy,जनाती को छोरी ,साली,ठुलिआमा,जनातिनी ,खनातिनी ,D
+148,Kinship & Social Hierarchy,पनाति को श्रीमती ,नातिनी बुहारी ,ठुलोबुवा,ठुलिआमा,पनातिनी बुहारी ,D
+149,Kinship & Social Hierarchy,पनातिनी को श्रीमान ,पनातिनी ज्वाई ,ठुलोबुवा,भीनाजु,पनातिनी बुहारी ,A
+150,Kinship & Social Hierarchy,जनाती को श्रीमती ,फुपूआमा,जनातिनी बुहारी ,ठुलोबुवा,पनातिनी बुहारी ,B
+151,Kinship & Social Hierarchy,जनातिनी को श्रीमान ,भतिजो,जनातिनी बुहारी ,ठुलिआमा,जनातिनी ज्वाई ,D
+152,Kinship & Social Hierarchy,खनातिनी को श्रीमान ,साली,खनाति ज्वाई ,भीनाजु,जनातिनी ज्वाई ,B
+153,Kinship & Social Hierarchy,खनाति को श्रीमती ,फुपूआमा,खनाति ज्वाई ,ठुलोबुवा,खनातिनि बुहारी ,D
+154,Kinship & Social Hierarchy,ससुरा को दिदि ,भतिजो,फुपू सासु ,ठुलिआमा,खनातिनि बुहारी ,B
+155,Kinship & Social Hierarchy,ससुरा को बैनी ,साली,फुपू सासु ,भीनाजु,फुपू सासु ,D
+156,Kinship & Social Hierarchy,ससुरा को भाई ,साली,काका ससुरा ,ठुलोबुवा,फुपू सासु ,B
+157,Kinship & Social Hierarchy,ससुरा को दाई ,साली,ठुलिआमा,ठुलोबुवा,जेठा ससुरा ,D
+158,Kinship & Social Hierarchy,ससुरा को भाउजु ,जेठी सासु ,भीनाजु,ठुलोबुवा,जेठा ससुरा ,A
+159,Kinship & Social Hierarchy,ससुरा का जेठा बाउ ,जेठी सासु ,ठुलोबुवा,जेठा बुढा ससुरा ,जेठा ससुरा ,C
+160,Kinship & Social Hierarchy,ससुरा को जेठी आमा ,बुढी सासु ,ठुलोबुवा,जेठा बुढा ससुरा ,जेठा ससुरा ,A
+161,Kinship & Social Hierarchy,ससुरा का काका बुवा ,भाउजु,ठुलोबुवा,जेठा बुढा ससुरा ,कान्छा ससुरा ,D
+162,Kinship & Social Hierarchy,ससुरा का बुहारी ,छोरा,कान्छी सासु ,जेठा बुढा ससुरा ,कान्छा ससुरा ,B
+163,Kinship & Social Hierarchy,दाई को श्रीमती ,भतिजी,कान्छी सासु ,भाउजु ,कान्छा ससुरा ,C
+164,Kinship & Social Hierarchy,दाइ को छोरी ,भतिजो,कान्छी सासु ,भाउजु ,भतिजी,D
+165,Kinship & Social Hierarchy,दाई को छोरी को श्रीमान ,फुपूआमा,भतिज ज्वाई ,भाउजु ,भतिजी,B
+166,Kinship & Social Hierarchy,दाई को छोरा ,भतिजो,ठुलिआमा,भाउजु ,भतिजी,D
+167,Kinship & Social Hierarchy,दाई को बुहारी ,साली,भीनाजु,भतिजी बुहारी ,भतिजी,C
+168,Kinship & Social Hierarchy,दाई को ससुरा ,ससुरा ,ठुलोबुवा,ठुलिआमा,भतिजी,A
+169,Kinship & Social Hierarchy,दाई को सासु ,फुपूआमा,ठुलोबुवा,भीनाजु,सासु ,D
+170,Kinship & Social Hierarchy,दाई को साली ,भतिजो,सोल्टिनी ,ठुलोबुवा,सासु ,B
+171,Kinship & Social Hierarchy,दाई को सालो ,साली,सोल्टिनी ,ठुलोबुवा,सोल्टा,D
+172,Kinship & Social Hierarchy,भाई को श्रीमती ,बुहारी ,भाउजु,सोल्टिनी ,ठुलोबुवा,A
+173,Kinship & Social Hierarchy,बुढा को दिदि ,बुहारी ,छोरा,आमाजू ,ठुलोबुवा,C
+174,Kinship & Social Hierarchy,बुढा को बैनी ,नन्द ,भतिजी,सोल्टिनी ,ठुलोबुवा,A
+175,Kinship & Social Hierarchy,बुढा को फुपू ,नन्द ,भतिजो,सोल्टिनी ,फुपू सासु ,D
+176,Kinship & Social Hierarchy,बुढा को फुपाजु ,नन्द ,भाउजु,सोल्टिनी ,फुपू सासु ,A
+177,Kinship & Social Hierarchy,बुढा को काका ,नन्द ,छोरा,काका ससुरा ,फुपू सासु ,C
+178,Kinship & Social Hierarchy,बुढा को भाई ,नन्द ,भतिजी,काका ससुरा ,फुपू सासु ,D
+179,Kinship & Social Hierarchy,बुढा को दाई ,जेठाजु,भतिजो,काका ससुरा ,फुपू सासु ,A
+180,Kinship & Social Hierarchy,देवर को श्रीमती ,जेठाजु,देउरानी ,काका ससुरा ,फुपू सासु ,B
+181,Kinship & Social Hierarchy,जेठाजु को श्रीमती ,जेठाजु,देउरानी ,काका ससुरा ,जेठानी ,D
+182,Kinship & Social Hierarchy,बुढा को सानिआमा ,जेठाजु,सानिमा सासु ,काका ससुरा ,जेठानी ,B
+183,Kinship & Social Hierarchy,बुढा को मामा ,जेठाजु,सानिमा सासु ,काका ससुरा ,मामा ससुरा ,D
+184,Kinship & Social Hierarchy,बुढा को माइजु ,बुढा को माइजु ,सानिमा सासु ,काका ससुरा ,मामा ससुरा ,A
+185,Kinship & Social Hierarchy,बुढा को भाउजु ,बुढा को माइजु ,सानिमा सासु ,जेठानी ,मामा ससुरा ,C
+186,Kinship & Social Hierarchy,बुढी को दाई ,बुढा को माइजु ,सानिमा सासु ,जेठानी ,जेठान ,D
+187,Kinship & Social Hierarchy,बुढी को भाई ,सालो ,सानिमा सासु ,जेठानी ,जेठान ,A
+188,Kinship & Social Hierarchy,बुढी को देवर ,फुपूआमा,भाई ,जेठानी ,जेठान ,B
+189,Kinship & Social Hierarchy,बुढी को भाउजु ,भतिजो,सानिमा सासु ,जेठानी दिदि ,जेठान ,C
+190,Kinship & Social Hierarchy,बुढी को भाडा ,साली,सानिमा सासु ,जेठानी दिदि ,भाडा सालो ,D
+191,Kinship & Social Hierarchy,बुढी को भदै ,भदै साली ,सानिमा सासु ,जेठानी दिदि ,भाडा सालो ,A
+192,Kinship & Social Hierarchy,बुढी को भदै को श्रीमान ,फुपूआमा,भाई ,भदा ज्वाई ,भाडा सालो ,C
+193,Kinship & Social Hierarchy,दाई को छोरि ,भतिजो,भदै ,भदा ज्वाई ,भाडा सालो ,B
+194,Kinship & Social Hierarchy,बुढी को आमाजू ,साली,दिदि ,भदा ज्वाई ,भदा भाई ,B
+195,Kinship & Social Hierarchy,आमाजू को श्रीमान ,साली,सानिमा सासु ,भिनाजु ,भदा भाई ,C
+196,Kinship & Social Hierarchy,नन्द को श्रीमान ,ज्वाई ,सानिमा सासु ,सानिमा सासु ,भदा भाई ,A
+197,Kinship & Social Hierarchy,बुढी को आमाजू को श्रीमान ,भाउजु,सानिमा सासु ,सानिमा सासु ,भिनाजु ,D
+198,Kinship & Social Hierarchy,मामा को दिदि ,छोरा,भाई ,सानिमा सासु ,भिनाजु ,B
+199,Kinship & Social Hierarchy,मामा को श्रीमती ,भतिजी,भाई ,भाई ,माइजु ,D
+200,Kinship & Social Hierarchy,मामा को बुवा ,भतिजो,हजुरबुवा ,सानिमा सासु ,माइजु ,B
+201,Kinship & Social Hierarchy,मामा को सानी आमा ,फुपूआमा,हजुरबुवा ,सानिमा सासु ,सानी आमा ,D
+202,Kinship & Social Hierarchy,सानी आमा को श्रीमान ,भतिजो,सानो बुवा ,सानिमा सासु ,सानी आमा ,B
+203,Kinship & Social Hierarchy,ठुलि आमा को श्रीमान ,साली,सानो बुवा ,भाई ,ठुलो बुवा ,D
+204,Kinship & Social Hierarchy,जेठान को छोरा ,भदा सालो ,सानो बुवा ,सानिमा सासु ,ठुलो बुवा ,A
+205,Kinship & Social Hierarchy,बुहारी को बुवा ,भदा सालो ,सम्धी ,सानिमा सासु ,ठुलो बुवा ,B
+206,Kinship & Social Hierarchy,बुहारी को ठुलोबुवा ,भदा सालो ,सम्धी ,सानिमा सासु ,ठुलो सम्धी ,D
+207,Kinship & Social Hierarchy,बुहारी को ठुलि आमा ,ठुली सम्धिनी ,सम्धी ,भाई ,ठुलो सम्धी ,A
+208,Kinship & Social Hierarchy,भान्जी को श्रीमान ,फुपूआमा,भान्जी ज्वाई ,भाई ,ठुलो सम्धी ,B
+209,Kinship & Social Hierarchy,बुहारी को काका ,भतिजो,भान्जी ज्वाई ,कान्छा सम्धी ,ठुलो सम्धी ,C
+210,Kinship & Social Hierarchy,बुहारी को कान्छी सासु ,साली,कान्छी सम्धिनी ,कान्छा सम्धी ,ठुलो सम्धी ,B
+211,Kinship & Social Hierarchy,बुहारी को ठुलोबुवा को छोरि लाई,साली,सानिमा सासु ,कान्छा सम्धी ,कान्छा सम्धी ,D
+212,Kinship & Social Hierarchy,हजुर आमा को दिदि ,ठुलो हजुर आमा ,सानिमा सासु ,कान्छा सम्धी ,कान्छा सम्धी ,A
+213,Kinship & Social Hierarchy,हजुर आमा को बैनी लाई ,ठुलो हजुर आमा ,सानिमा सासु ,सानी आमा ,सानी आमा ,C
+214,Kinship & Social Hierarchy,हजुर आमा को छोरा ,ठुलो हजुर आमा ,भाई ,सानी आमा ,सानी आमा ,A
+215,Kinship & Social Hierarchy,हजुर आमा को छोरि ,ठुलो हजुर आमा ,भाई ,सानिमा सासु ,सानी आमा / ठुली आमा ,D
+216,Kinship & Social Hierarchy,भान्जी को छोरा ,नाति ,भाई ,सानिमा सासु ,सानी आमा / ठुली आमा ,A
+217,Kinship & Social Hierarchy,भान्जी को छोरी ,छोरा,भान्जी ज्वाई ,भाई ,नातिनी ,D
+218,Kinship & Social Hierarchy,भान्जी को बुहारी ,भतिजी,नातिनी बुहारी ,भाई ,नातिनी ,B
+219,Kinship & Social Hierarchy,भान्जी को ज्वाई ,भतिजो,नातिनी बुहारी ,भाई ,भान्जी ज्वाई ,D
+220,Kinship & Social Hierarchy,भान्जी को नाति ,फुपूआमा,पनाति ,भाई ,भान्जी ज्वाई ,B
+221,Kinship & Social Hierarchy,बुढा मामाघर हजुरआमा को बुवा  ,भतिजो,पनाति ,बुढा हजुर बुवा ,भान्जी ज्वाई ,C
+222,Kinship & Social Hierarchy,बुढा मामाघर हजुरआमा को आमा ,साली,पनाति ,बुढा हजुर बुवा ,बुढी हजुरआमा ,D
+223,Kinship & Social Hierarchy,बुढा मामाघर हजुरआमा को छोरा  ,बुढा मामा हजुर बुवा ,पनाति ,बुढा हजुर बुवा ,बुढी हजुरआमा ,A
+224,Kinship & Social Hierarchy,बुढा मामाघर हजुरआमा को छोरी   ,भाउजु,बुढी हजुर आमा ,भाउजु,बुढी हजुरआमा ,B
+225,Kinship & Social Hierarchy,बुढा मामाघर हजुरआमा को नाती   ,छोरा,बुढी हजुर आमा ,छोरा,हजुरबुवा ,D
+226,Kinship & Social Hierarchy,मामाघर हजुर आमा को दिदि,भतिजी, जेठानी दिदि  ,भतिजी,हजुरबुवा ,B
+227,Kinship & Social Hierarchy,श्रीमती को ज्वाई ,भतिजो,भतिजो,भतिजो,साढ भाई ,D
+228,Kinship & Social Hierarchy,श्रीमती को भिनाजु ,फुपूआमा,साढे दाजु ,भाउजु,साढ भाई ,B
+229,Kinship & Social Hierarchy,साढ भाई को छोरा ,साढे दाजु , जेठानी दिदि  ,छोरा,भतिज ,D
+230,Kinship & Social Hierarchy,श्रीमती को मामा ,मामा ससुरा ,भतिजो,भतिजी,भतिज ,A
+231,Kinship & Social Hierarchy,श्रीमती को माइजु ,फुपूआमा,साढे दाजु ,भतिजो,माइजु सासु ,D
+232,Kinship & Social Hierarchy,श्रीमती को बैनी ,भतिजो,साली ,भतिजो,माइजु सासु ,B
+233,Kinship & Social Hierarchy,श्रीमती को बैनी को छोरा ,साली,साली ,भतिज ,माइजु सासु ,C
+234,Kinship & Social Hierarchy,भानिजका छोरा/छोरी ,नाती/नातिनी ,साली ,भतिज ,माइजु सासु ,A
+235,Kinship & Social Hierarchy,मामाघर हजुर बुवा फुपू ,बुढी फुपू हजुर आमा ,साली ,भतिज ,बुढी फुपू हजुर आमा ,D
