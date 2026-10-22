@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import (JSON, BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text,
-                        UniqueConstraint, create_engine)
+                        UniqueConstraint, create_engine, inspect, text)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 from sqlalchemy.pool import NullPool
 
@@ -45,6 +45,7 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(10))  # 'admin' | 'writer'
     display_name: Mapped[str | None] = mapped_column(String(120))
     writer_code: Mapped[str | None] = mapped_column(String(10), unique=True)  # anonymous id used in exports
+    slot: Mapped[int | None] = mapped_column(Integer)  # design slot 1..WRITER_SLOTS; decides which units they get
     profile: Mapped[dict | None] = mapped_column(JSON)
     consent: Mapped[bool | None] = mapped_column(Boolean)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -61,6 +62,7 @@ class Unit(Base):
     source: Mapped[str] = mapped_column(String(40))
     category: Mapped[str] = mapped_column(String(60))
     repeat_of: Mapped[str | None] = mapped_column(String(120))  # unit_key of the original, for hidden repeats
+    writer_slots: Mapped[list | None] = mapped_column(JSON)  # slots that write this unit; None = every writer
     created_by: Mapped[int | None] = mapped_column(ForeignKey('users.id'))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
@@ -113,6 +115,18 @@ class Notification(Base):
     message: Mapped[str] = mapped_column(Text)
     delivered: Mapped[str | None] = mapped_column(String(80))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+def add_missing_columns():
+    """create_all() does not alter existing tables; add columns introduced after the first deploy."""
+    insp = inspect(engine)
+    added = {'users': {'slot': 'INTEGER'}, 'units': {'writer_slots': 'JSON'}}
+    with engine.begin() as conn:
+        for table, cols in added.items():
+            have = {c['name'] for c in insp.get_columns(table)}
+            for name, ddl in cols.items():
+                if name not in have:
+                    conn.execute(text(f'ALTER TABLE {table} ADD COLUMN {name} {ddl}'))
 
 
 def get_session():

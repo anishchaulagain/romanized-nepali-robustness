@@ -7,7 +7,7 @@ for the dataset export; the app never sends them to writers.
 import json
 from pathlib import Path
 
-from prepare_annotation import FIELDS, SEED, build_sample
+from prepare_annotation import FIELDS, N_WRITERS, SEED, build_sample
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -36,8 +36,10 @@ def main():
     units, repeats = build_sample()
     data = {
         'seed': SEED,
+        'writer_slots': N_WRITERS,
         'units': [{'unit_key': u['unit_id'], 'source': u['source'], 'category': u['category'],
-                   'repeat_of': u.get('repeat_of'), 'segments': segments(u)} for u in units + repeats],
+                   'repeat_of': u.get('repeat_of'), 'writers': u['writers'], 'segments': segments(u)}
+                  for u in units + repeats],
     }
     out = ROOT / 'apps' / 'romanized-data-collection' / 'backend' / 'seed' / 'items.json'
     out.parent.mkdir(parents=True, exist_ok=True)

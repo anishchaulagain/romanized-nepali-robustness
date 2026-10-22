@@ -13,7 +13,8 @@ def seed_if_empty(db: Session) -> int:
         return 0
     data = json.loads(config.SEED_FILE.read_text(encoding='utf-8'))
     for u in data['units']:
-        unit = Unit(unit_key=u['unit_key'], source=u['source'], category=u['category'], repeat_of=u.get('repeat_of'))
+        unit = Unit(unit_key=u['unit_key'], source=u['source'], category=u['category'], repeat_of=u.get('repeat_of'),
+                    writer_slots=u.get('writers'))
         db.add(unit)
         db.flush()
         for pos, s in enumerate(u['segments']):

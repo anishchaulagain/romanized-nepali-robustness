@@ -1,4 +1,5 @@
-"""Per-writer unit order: a different random order for each writer, with hidden repeats late in the list."""
+"""Which units each writer gets (by design slot) and in what order: a different random order per writer,
+with hidden repeats late in the list."""
 import random
 
 from sqlalchemy import func, select, update
@@ -27,16 +28,21 @@ def unit_order(units: list[Unit], username: str) -> list[Unit]:
     return order
 
 
+def for_slot(unit: Unit, slot: int | None) -> bool:
+    return unit.writer_slots is None or slot in unit.writer_slots
+
+
 def assign_all(db: Session, user: User):
-    units = db.scalars(select(Unit).order_by(Unit.id)).all()
+    units = [u for u in db.scalars(select(Unit).order_by(Unit.id)).all() if for_slot(u, user.slot)]
     for i, unit in enumerate(unit_order(units, user.username), 1):
         db.add(Assignment(user_id=user.id, unit_id=unit.id, ord=i))
 
 
 def append_unit_to_writers(db: Session, unit: Unit):
     """New units go to the end of every writer's list; their completion is reopened."""
-    writers = db.scalars(select(User).where(User.role == 'writer')).all()
+    writers = [w for w in db.scalars(select(User).where(User.role == 'writer')).all() if for_slot(unit, w.slot)]
     for w in writers:
         last = db.scalar(select(func.max(Assignment.ord)).where(Assignment.user_id == w.id)) or 0
         db.add(Assignment(user_id=w.id, unit_id=unit.id, ord=last + 1))
-    db.execute(update(User).where(User.role == 'writer').values(completed_at=None))
+    if writers:
+        db.execute(update(User).where(User.id.in_([w.id for w in writers])).values(completed_at=None))

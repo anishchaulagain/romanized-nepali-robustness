@@ -22,20 +22,21 @@ function Overview({ data, reload }) {
     <>
       <div className="stats">
         <div className="card stat"><b>{data.units}</b><span>items</span></div>
-        <div className="card stat"><b>{data.segments}</b><span>boxes per writer</span></div>
+        <div className="card stat"><b>{active} / {data.slots}</b><span>writer slots filled</span></div>
         <div className="card stat"><b>{finished} / {active}</b><span>writers finished</span></div>
       </div>
       <div className="card">
         <h3>Writers</h3>
         {data.writers.length === 0 ? <p className="muted">No writers yet. Create them in the Writers tab.</p> : (
           <table>
-            <thead><tr><th>Code</th><th>Writer</th><th>Progress</th><th>Last seen</th><th>Finished</th></tr></thead>
+            <thead><tr><th>Code</th><th>Slot</th><th>Writer</th><th>Progress</th><th>Last seen</th><th>Finished</th></tr></thead>
             <tbody>
               {data.writers.map((w) => {
                 const pct = w.total ? Math.round((100 * w.done) / w.total) : 0;
                 return (
                   <tr key={w.id} className={w.active ? '' : 'inactive'}>
                     <td>{w.writer_code}</td>
+                    <td>{w.slot ?? '—'}</td>
                     <td>{w.display_name || w.username}{!w.active && ' (disabled)'}</td>
                     <td><div className="bar small"><div style={{ width: `${pct}%` }} /></div> {w.done}/{w.total}</td>
                     <td>{fmt(w.last_seen_at)}</td>
@@ -65,15 +66,16 @@ function Overview({ data, reload }) {
 }
 
 function Writers({ data, reload }) {
-  const [form, setForm] = useState({ username: '', password: '', display_name: '' });
+  const [form, setForm] = useState({ username: '', password: '', display_name: '', slot: '' });
   const [msg, setMsg] = useState('');
+  const activeBySlot = Object.fromEntries(data.writers.filter((w) => w.active).map((w) => [w.slot, w]));
 
   async function create(e) {
     e.preventDefault();
     try {
-      const w = await api.post('/api/admin/users', form);
-      setMsg(`Created ${w.username} (${w.writer_code}). Send them the username and password.`);
-      setForm({ username: '', password: '', display_name: '' });
+      const w = await api.post('/api/admin/users', { ...form, slot: form.slot ? Number(form.slot) : null });
+      setMsg(`Created ${w.username} (${w.writer_code}, slot ${w.slot}). Send them the username and password.`);
+      setForm({ username: '', password: '', display_name: '', slot: '' });
       reload();
     } catch (err) {
       setMsg(err.message);
@@ -100,17 +102,32 @@ function Writers({ data, reload }) {
           onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
         <label>Display name (private)<input value={form.display_name}
           onChange={(e) => setForm({ ...form, display_name: e.target.value })} /></label>
+        <label>Slot
+          <select value={form.slot} onChange={(e) => setForm({ ...form, slot: e.target.value })}>
+            <option value="">{data.free_slot ? `Next free (slot ${data.free_slot})` : 'All slots taken'}</option>
+            {Array.from({ length: data.slots }, (_, i) => i + 1).map((s) => (
+              <option key={s} value={s}>
+                Slot {s}{activeBySlot[s] ? ` — replaces ${activeBySlot[s].username}` : ' — free'}
+              </option>
+            ))}
+          </select>
+        </label>
         <button className="primary">Create writer</button>
+        <p className="muted span">
+          The study uses {data.slots} slots; each item is written by 3 of them, so each slot gets about half the
+          items. To replace a writer who dropped out, disable them and create the new writer in the same slot.
+        </p>
       </form>
       {msg && <div className="card notice">{msg}</div>}
       <div className="card">
         <h3>All writers</h3>
         <table>
-          <thead><tr><th>Code</th><th>Username</th><th>Name</th><th>Region</th><th></th></tr></thead>
+          <thead><tr><th>Code</th><th>Slot</th><th>Username</th><th>Name</th><th>Region</th><th></th></tr></thead>
           <tbody>
             {data.writers.map((w) => (
               <tr key={w.id} className={w.active ? '' : 'inactive'}>
                 <td>{w.writer_code}</td>
+                <td>{w.slot ?? '—'}</td>
                 <td>{w.username}</td>
                 <td>{w.display_name || '—'}</td>
                 <td>{w.profile?.home_region || '—'}</td>

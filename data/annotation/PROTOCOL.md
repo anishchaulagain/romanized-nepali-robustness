@@ -15,19 +15,28 @@ them only need the workbook's Instructions sheet.
 Regenerate with `python scripts/prepare_annotation.py` (fixed seed, so it produces the same sample).
 Regenerating after sheets have been sent is safe only if nothing in the script changed.
 
-## Sample (identical for all three writers, different order)
+## Design: 600 questions, 6 writers, 3 writers per item
 
-- NeCCo: 35 items × 6 categories = 210 items (question + 4 options each)
-- Belebele: 50 passages with all 143 of their questions
-- 15 NeCCo items repeated in the second half under a new code (self-consistency)
-- 1,640 rows and about 8,900 Devanagari words per writer, roughly 8–10 hours of typing
+- NeCCo: 75 items × 6 categories = 450 items (question + 4 options each)
+- Belebele: 82 passages with all 150 of their questions
+- Each unit goes to one of the 20 possible groups of 3 writers (rotating within each category), so every
+  unit is written by exactly 3 writers, each writer does half the units, and each pair of writers shares
+  about 120 questions.
+- 20 NeCCo units (one per writer group) are repeated later under a new number: 10 repeats per writer.
+- Per writer: about 300 questions, 1,600 boxes and 7,900 Devanagari words, roughly 8–9 hours of typing.
+
+Why this size: 600 questions lets a paired difference of about 5 accuracy points be detected (McNemar,
+α = 0.05, power 0.8, assuming 20% of items flip between conditions); 353 questions would detect only about
+6.6 points. Six writers let writer effects be estimated rather than attributed to three individuals.
 
 ## Choosing writers
 
-- Three people who **regularly type Nepali in English letters** in chat, ideally from different
-  regions (e.g. Kathmandu Valley, eastern hills, Terai/western) and not all the same age group.
+- Six people who **regularly type Nepali in English letters** in chat, ideally from different regions
+  (e.g. Kathmandu Valley, eastern hills, western hills, Terai) and a mix of age groups.
 - Not linguists or NLP people, and not people who have seen this project's romanized data.
-- They must not compare notes with each other until all three are done.
+- They must not compare notes with each other until all are done.
+- In the app, create them as writers; slots 1–6 are filled in order. If someone drops out, disable them and
+  create the replacement in the same slot.
 
 ## Rules writers must follow (already in the Instructions sheet)
 

@@ -1,13 +1,16 @@
-"""Sample Devanagari items and build one annotation workbook per writer (W1-W3).
+"""Sample Devanagari items and build one annotation workbook per writer slot (W1-W6).
 
-Writers see only Devanagari text (never the existing romanization or the gold answer),
-and each writer gets the units in a different random order. A hidden manifest maps every
-row back to its source item, the existing standardized romanization (R-std), and the answer.
+Design: each unit is written by WRITERS_PER_UNIT of the N_WRITERS slots. Units are spread over all
+C(6,3) = 20 slot triples, so every writer does half the units and every pair of writers shares a fifth.
+Writers see only Devanagari text (never the existing romanization or the gold answer), and each writer
+gets their units in a different random order. A hidden manifest maps every row back to its source item,
+the existing romanization (R-std), and the answer.
 
 Usage: python scripts/prepare_annotation.py
 """
 import json
 import random
+from itertools import combinations
 from pathlib import Path
 
 import pandas as pd
@@ -20,10 +23,12 @@ RAW = ROOT / 'data' / 'raw'
 OUT = ROOT / 'data' / 'annotation'
 
 SEED = 35
-WRITERS = ['W1', 'W2', 'W3']
-NECCO_PER_CATEGORY = 35      # 6 categories -> 210 items
-BELEBELE_PASSAGES = 50       # all questions of each sampled passage are kept
-N_REPEATS = 15               # NeCCo items shown twice to measure a writer's self-consistency
+N_WRITERS = 6
+WRITERS_PER_UNIT = 3
+NECCO_PER_CATEGORY = 75      # 6 categories -> 450 items
+BELEBELE_QUESTIONS = 150     # whole passages are sampled until at least this many questions
+TRIPLES = list(combinations(range(1, N_WRITERS + 1), WRITERS_PER_UNIT))
+N_REPEATS = len(TRIPLES)     # one repeated NeCCo unit per triple -> 10 repeats per writer
 
 NECCO_FILES = [  # (Devanagari file, Romanized file)
     ('Nepali-Cultural-Etiqu.csv', 'Romanized-Cultural-Etiqu.csv'),
@@ -88,7 +93,14 @@ def sample_belebele(dev, lat, rng):
     passages = {}
     for i, d in enumerate(dev):
         passages.setdefault(d['link'], []).append(i)
-    links = rng.sample(sorted(passages), BELEBELE_PASSAGES)
+    shuffled = sorted(passages)
+    rng.shuffle(shuffled)
+    links, n_questions = [], 0
+    for link in shuffled:
+        if n_questions >= BELEBELE_QUESTIONS:
+            break
+        links.append(link)
+        n_questions += len(passages[link])
     units = []
     for p_no, link in enumerate(links, 1):
         idx = passages[link]
@@ -256,9 +268,29 @@ def build_sample():
     for u in bele_units:
         u.update(source='belebele', category='reading')
     units += bele_units
+    assign_slots(units, rng)
+    # One repeated NeCCo unit per writer triple, so every writer gets the same number of repeats.
+    # A repeat goes to the same writers as its original.
+    necco_units = [u for u in units if u['source'] == 'necco']
+    originals = [rng.choice([u for u in necco_units if tuple(u['writers']) == t]) for t in TRIPLES]
     repeats = [{**u, 'unit_id': f"repeat-{i:02d}", 'repeat_of': u['unit_id']}
-               for i, u in enumerate(rng.sample(units[:len(necco)], N_REPEATS), 1)]
+               for i, u in enumerate(originals, 1)]
     return units, repeats
+
+
+def assign_slots(units, rng):
+    """Give every unit a writer triple, cycling through all 20 triples within each category in turn,
+    so each writer gets a balanced half of every category and of the long Belebele passages."""
+    by_cat = {}
+    for u in units:
+        by_cat.setdefault(u['category'], []).append(u)
+    i = 0
+    for cat in sorted(by_cat):
+        group = by_cat[cat]
+        rng.shuffle(group)
+        for u in group:
+            u['writers'] = list(TRIPLES[i % len(TRIPLES)])
+            i += 1
 
 
 def main():
@@ -266,23 +298,28 @@ def main():
 
     (OUT / 'sheets').mkdir(parents=True, exist_ok=True)
     (OUT / 'key').mkdir(parents=True, exist_ok=True)
+    for old in (OUT / 'sheets').glob('romanization_W*.xlsx'):
+        old.unlink()
     manifest = []
-    for w_no, writer in enumerate(WRITERS):
-        order = list(units)
-        random.Random(SEED + 1 + w_no).shuffle(order)
+    for slot in range(1, N_WRITERS + 1):
+        writer = f'W{slot}'
+        order = [u for u in units if slot in u['writers']]
+        random.Random(SEED + slot).shuffle(order)
         # Repeats go in the second half, so they are far from most first appearances.
         half = len(order) // 2
-        for rep in repeats:
+        for rep in (r for r in repeats if slot in r['writers']):
             order.insert(random.Random(f'{SEED}-{writer}-{rep["unit_id"]}').randint(half, len(order)), rep)
         manifest += build_workbook(writer, order, OUT / 'sheets' / f'romanization_{writer}.xlsx')
 
     m = pd.DataFrame(manifest)
     m.to_csv(OUT / 'key' / 'manifest.csv', index=False, encoding='utf-8')
-    one = m[m.writer == 'W1']
-    words = one.devanagari.str.split().str.len().sum()
-    print(f"units: {len(units)} (+{N_REPEATS} repeats) | rows per writer: {len(one)} | "
-          f"Devanagari words per writer: {words}")
-    print(one.groupby(['source', 'category']).item_id.nunique().to_string())
+    n_q = sum(len(u['items']) for u in units)
+    print(f"units: {len(units)} (+{N_REPEATS} repeats) | questions: {n_q}")
+    m['words'] = m.devanagari.str.split().str.len()
+    per = m.groupby('writer').agg(rows=('code', 'size'), words=('words', 'sum'),
+                                  repeats=('repeat_of', lambda s: s[s.fillna('') != ''].nunique()))
+    print(per.to_string())
+    print(m[m.writer == 'W1'].groupby(['source', 'category']).item_id.nunique().to_string())
 
 
 if __name__ == '__main__':

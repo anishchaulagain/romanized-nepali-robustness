@@ -24,7 +24,8 @@ ADMIN_PASSWORD = _required('ADMIN_PASSWORD')
 
 FRONTEND_ORIGINS = [o.strip() for o in os.getenv('FRONTEND_ORIGINS', 'http://localhost:5173').split(',') if o.strip()]
 APP_URL = os.getenv('APP_URL', FRONTEND_ORIGINS[0] if FRONTEND_ORIGINS else '')
-TOKEN_TTL_HOURS = int(os.getenv('TOKEN_TTL_HOURS', '168'))
+WRITER_SLOTS = int(os.getenv('WRITER_SLOTS', '6'))  # must match the seed design (scripts/prepare_annotation.py)
+TOKEN_TTL_HOURS =int(os.getenv('TOKEN_TTL_HOURS', '168'))
 SEED_FILE = Path(os.getenv('SEED_FILE', BACKEND_DIR / 'seed' / 'items.json'))
 
 # Notifications: any configured channel is used.
