@@ -109,7 +109,6 @@ legend { font-weight: 700; padding: 0 .35rem; }
 }
 .topbar::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--line); }
 .actions { margin-left: auto; display: flex; gap: .3rem; }
-.meter { position: absolute; left: 0; bottom: -1px; height: 3px; background: var(--marigold); border-radius: 0 3px 3px 0; transition: width .4s ease; z-index: 1; }
 .count { font-size: .92rem; color: var(--slate); font-variant-numeric: tabular-nums; }
 .count b { color: var(--ink); }
 
@@ -179,12 +178,23 @@ textarea.invalid, textarea.invalid.filled:not(:focus) { border-color: var(--crim
 .summary b { display: block; font-size: 1.7rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .summary span { color: var(--slate); font-size: .92rem; }
 
-.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: .6rem; margin-bottom: 1rem; }
-.slot { border: 1px solid var(--line); border-radius: var(--r-card); padding: .8rem .9rem; background: var(--paper); }
-.slot.free { border-style: dashed; background: transparent; color: var(--slate); }
-.slot .n { font-size: .82rem; color: var(--slate); }
-.slot .who { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.slot .done-tag { color: var(--ok); font-size: .82rem; font-weight: 600; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: .6rem; margin-bottom: 1rem; }
+.tile { border: 1px solid var(--line); border-radius: var(--r-card); padding: .8rem .9rem; background: var(--paper); }
+.tile .n { font-size: .82rem; color: var(--slate); }
+.tile .who { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tile .done-tag { color: var(--ok); font-size: .88rem; font-weight: 600; }
+.tile-progress { display: flex; align-items: center; gap: .55rem; font-size: .9rem; font-variant-numeric: tabular-nums; margin-top: .25rem; }
+
+/* Progress bars */
+.progress-track { flex: 1; min-width: 70px; height: 8px; background: #dce2eb; border-radius: 99px; overflow: hidden; }
+.progress-track.big { height: 14px; }
+.progress-fill { height: 100%; background: var(--marigold); border-radius: 99px; transition: width .4s ease; }
+.progress-track.full .progress-fill { background: var(--ok); }
+.top-progress { display: flex; align-items: center; gap: .7rem; flex: 1; min-width: 220px; max-width: 380px; }
+.top-progress .count { white-space: nowrap; }
+.overall-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: .4rem 1rem; margin-bottom: .75rem; }
+.overall-head h3 { margin: 0; }
+.small-note { font-size: .9rem; margin: .8rem 0 0; }
 
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 1rem; align-items: end; }
 .form-grid h3 { grid-column: 1 / -1; }
@@ -242,6 +252,7 @@ td.num { font-variant-numeric: tabular-nums; }
   .card { padding: 1rem; }
   .topbar { gap: .4rem .6rem; padding: .55rem 0; }
   .brand small { display: none; }
+  .top-progress { order: 3; flex-basis: 100%; max-width: none; min-width: 0; }
   .actions button { padding: .3rem .6rem; font-size: .9rem; }
   .segment { padding: .85rem .85rem .7rem; }
   .dev { font-size: 1.2rem; }
@@ -251,5 +262,5 @@ td.num { font-variant-numeric: tabular-nums; }
 }
 @media (prefers-reduced-motion: reduce) {
   .caret, .sk, .toast { animation: none; }
-  .meter { transition: none; }
+  .progress-fill { transition: none; }
 }

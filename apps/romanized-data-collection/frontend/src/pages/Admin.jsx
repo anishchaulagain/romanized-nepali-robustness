@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { useLogout } from '../hooks.js';
 import Brand from '../Brand.jsx';
 import { AdminSkeleton } from '../Skeleton.jsx';
+import Progress from '../Progress.jsx';
 
 const fmt = (d) => (d ? new Date(d).toLocaleString() : '—');
 
@@ -18,42 +19,59 @@ function Overview({ data, reload }) {
       setMsg(err.message);
     }
   }
-  const finished = data.writers.filter((w) => w.active && w.completed_at).length;
-  const active = data.writers.filter((w) => w.active).length;
+  const activeWriters = data.writers.filter((w) => w.active);
+  const finished = activeWriters.filter((w) => w.completed_at).length;
+  const done = activeWriters.reduce((n, w) => n + w.done, 0);
+  const total = activeWriters.reduce((n, w) => n + w.total, 0);
+  const pct = total ? Math.round((100 * done) / total) : 0;
+  const perItem = Math.min(data.writers_per_unit, activeWriters.length);
   return (
     <>
       <div className="summary">
-        <div><b>{data.units}</b><span>items in the study</span></div>
-        <div><b>{active} of {data.slots}</b><span>writer slots filled</span></div>
-        <div><b>{finished} of {active}</b><span>writers finished</span></div>
+        <div><b>{data.units}</b><span>{perItem > 1 ? `items, each written by ${perItem} people`
+          : perItem === 1 ? 'items, each written by 1 person' : 'items; add writers to start'}</span></div>
+        <div><b>{activeWriters.length}</b><span>active writers</span></div>
+        <div><b>{finished} of {activeWriters.length}</b><span>writers finished</span></div>
       </div>
-      <div className="slots">
-        {Array.from({ length: data.slots }, (_, i) => i + 1).map((slot) => {
-          const w = data.writers.find((x) => x.active && x.slot === slot);
-          if (!w) return <div key={slot} className="slot free"><div className="n">Slot {slot}</div><div>Free</div></div>;
-          const pct = w.total ? Math.round((100 * w.done) / w.total) : 0;
-          return (
-            <div key={slot} className="slot">
-              <div className="n">Slot {slot}, {w.writer_code}</div>
-              <div className="who">{w.display_name || w.username}</div>
-              {w.completed_at ? <div className="done-tag">Finished</div>
-                : <div><span className="bar"><div style={{ width: `${pct}%` }} /></span>{pct}%</div>}
-            </div>
-          );
-        })}
+      <div className="card overall">
+        <div className="overall-head">
+          <h3>Overall progress</h3>
+          <span className="count"><b>{done.toLocaleString()}</b> of {total.toLocaleString()} boxes written ({pct}%)</span>
+        </div>
+        <Progress pct={pct} label="Overall progress" big />
+        {data.short_units > 0 && (
+          <p className="muted small-note">
+            {data.short_units} items have fewer than {data.writers_per_unit} active writers, usually because a writer
+            who already wrote them was disabled. Add a writer to have them written again.
+          </p>
+        )}
       </div>
+      {activeWriters.length > 0 && (
+        <div className="tiles">
+          {activeWriters.map((w) => {
+            const p = w.total ? Math.round((100 * w.done) / w.total) : 0;
+            return (
+              <div key={w.id} className="tile">
+                <div className="n">{w.writer_code}, {w.units} items</div>
+                <div className="who">{w.display_name || w.username}</div>
+                {w.completed_at ? <div className="done-tag">Finished</div>
+                  : <div className="tile-progress"><Progress pct={p} label={`${w.username} progress`} />{p}%</div>}
+              </div>
+            );
+          })}
+        </div>
+      )}
       <div className="card">
         <h3>Writers</h3>
         {data.writers.length === 0 ? <p className="muted">No writers yet. Create them in the Writers tab.</p> : (
           <div className="table-wrap"><table>
-            <thead><tr><th>Code</th><th>Slot</th><th>Writer</th><th>Progress</th><th>Last seen</th><th>Finished</th></tr></thead>
+            <thead><tr><th>Code</th><th>Writer</th><th>Progress</th><th>Last seen</th><th>Finished</th></tr></thead>
             <tbody>
               {data.writers.map((w) => {
                 const pct = w.total ? Math.round((100 * w.done) / w.total) : 0;
                 return (
                   <tr key={w.id} className={w.active ? '' : 'inactive'}>
                     <td>{w.writer_code}</td>
-                    <td>{w.slot ?? '—'}</td>
                     <td>{w.display_name || w.username}{!w.active && ' (disabled)'}</td>
                     <td className="num"><span className={`bar ${pct === 100 ? 'full' : ''}`}><div style={{ width: `${pct}%` }} /></span>{w.done} / {w.total}</td>
                     <td>{fmt(w.last_seen_at)}</td>
@@ -83,16 +101,15 @@ function Overview({ data, reload }) {
 }
 
 function Writers({ data, reload }) {
-  const [form, setForm] = useState({ username: '', password: '', display_name: '', slot: '' });
+  const [form, setForm] = useState({ username: '', password: '', display_name: '' });
   const [msg, setMsg] = useState('');
-  const activeBySlot = Object.fromEntries(data.writers.filter((w) => w.active).map((w) => [w.slot, w]));
 
   async function create(e) {
     e.preventDefault();
     try {
-      const w = await api.post('/api/admin/users', { ...form, slot: form.slot ? Number(form.slot) : null });
-      setMsg(`Created ${w.username} (${w.writer_code}, slot ${w.slot}). Send them the username and password.`);
-      setForm({ username: '', password: '', display_name: '', slot: '' });
+      const w = await api.post('/api/admin/users', form);
+      setMsg(`Created ${w.username} (${w.writer_code}). Send them the username and password.`);
+      setForm({ username: '', password: '', display_name: '' });
       reload();
     } catch (err) {
       setMsg(err.message);
@@ -119,34 +136,24 @@ function Writers({ data, reload }) {
           onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
         <label>Display name (private)<input value={form.display_name}
           onChange={(e) => setForm({ ...form, display_name: e.target.value })} /></label>
-        <label>Slot
-          <select value={form.slot} onChange={(e) => setForm({ ...form, slot: e.target.value })}>
-            <option value="">{data.free_slot ? `Next free (slot ${data.free_slot})` : 'All slots taken'}</option>
-            {Array.from({ length: data.slots }, (_, i) => i + 1).map((s) => (
-              <option key={s} value={s}>
-                Slot {s}{activeBySlot[s] ? ` (replaces ${activeBySlot[s].username})` : ' (free)'}
-              </option>
-            ))}
-          </select>
-        </label>
         <button className="primary">Create writer</button>
         <p className="muted span">
-          The study uses {data.slots} slots; each item is written by 3 of them, so each slot gets about half the
-          items. To replace a writer who dropped out, disable them and create the new writer in the same slot.
+          Each item is written by {data.writers_per_unit} people. When you add, disable or enable a writer, the items
+          nobody has started are shared out again evenly. Work a writer has started stays with them.
         </p>
       </form>
       {msg && <div className="card notice" role="status">{msg}</div>}
       <div className="card">
         <h3>All writers</h3>
         <div className="table-wrap"><table>
-          <thead><tr><th>Code</th><th>Slot</th><th>Username</th><th>Name</th><th>Region</th><th></th></tr></thead>
+          <thead><tr><th>Code</th><th>Username</th><th>Name</th><th>Items</th><th>Region</th><th></th></tr></thead>
           <tbody>
             {data.writers.map((w) => (
               <tr key={w.id} className={w.active ? '' : 'inactive'}>
                 <td>{w.writer_code}</td>
-                <td>{w.slot ?? '—'}</td>
                 <td>{w.username}</td>
                 <td>{w.display_name || '—'}</td>
+                <td className="num">{w.active ? w.units : '—'}</td>
                 <td>{w.profile?.home_region || '—'}</td>
                 <td className="row-actions">
                   <button onClick={() => {

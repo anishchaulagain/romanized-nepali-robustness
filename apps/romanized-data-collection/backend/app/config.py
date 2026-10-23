@@ -34,7 +34,7 @@ def _origin(value: str) -> str:
 FRONTEND_ORIGINS = [o for o in (_origin(v) for v in os.getenv('FRONTEND_ORIGINS', 'http://localhost:5173').split(','))
                     if o]
 APP_URL = os.getenv('APP_URL', FRONTEND_ORIGINS[0] if FRONTEND_ORIGINS else '').strip().strip('"\'').rstrip('/')
-WRITER_SLOTS = int(os.getenv('WRITER_SLOTS', '6'))  # must match the seed design (scripts/prepare_annotation.py)
+WRITERS_PER_UNIT = int(os.getenv('WRITERS_PER_UNIT', '3'))  # independent writers per item (all writers, if fewer)
 TOKEN_TTL_HOURS =int(os.getenv('TOKEN_TTL_HOURS', '168'))
 SEED_FILE = Path(os.getenv('SEED_FILE', BACKEND_DIR / 'seed' / 'items.json'))
 

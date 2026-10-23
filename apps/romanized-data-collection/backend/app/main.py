@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from . import config, notify
-from .assign import append_unit_to_writers, assign_all
+from .assign import append_unit_to_writers, rebalance
 from .auth import (admin_user, current_user, ensure_admin, hash_password, issue_token, login_limiter,
                    verify_password, writer_user)
 from .db import (Assignment, Base, Notification, Response, SessionLocal, Segment, Unit, UnitActivity, User,
@@ -47,10 +47,6 @@ def initialize():
         _initialized = True
 
 
-def free_slot(db: Session):
-    """Lowest design slot not held by an active writer, or None if all are taken."""
-    taken = set(db.scalars(select(User.slot).where(User.role == 'writer', User.active.is_(True))))
-    return next((s for s in range(1, config.WRITER_SLOTS + 1) if s not in taken), None)
 
 
 @asynccontextmanager
@@ -101,9 +97,21 @@ def next_unfinished(db: Session, user_id: int):
     return db.scalar(missing)
 
 
+def short_units(db: Session) -> int:
+    """Units that fewer active writers are assigned to than the design asks for (0 when the work is fully shared)."""
+    n_active = db.scalar(select(func.count(User.id)).where(User.role == 'writer', User.active.is_(True))) or 0
+    need = min(config.WRITERS_PER_UNIT, n_active)
+    if not need:
+        return 0
+    per_unit = (select(Assignment.unit_id, func.count().label('n')).join(User, User.id == Assignment.user_id)
+                .where(User.active.is_(True)).group_by(Assignment.unit_id).subquery())
+    covered = db.scalar(select(func.count()).select_from(per_unit).where(per_unit.c.n >= need)) or 0
+    return (db.scalar(select(func.count(Unit.id))) or 0) - covered
+
+
 def user_out(user: User) -> dict:
     return {'id': user.id, 'username': user.username, 'role': user.role, 'display_name': user.display_name,
-            'writer_code': user.writer_code, 'slot': user.slot, 'profile': user.profile, 'consent': user.consent,
+            'writer_code': user.writer_code, 'profile': user.profile, 'consent': user.consent,
             'active': user.active, 'completed_at': user.completed_at, 'last_seen_at': user.last_seen_at}
 
 
@@ -280,8 +288,8 @@ def overview(_: User = Depends(admin_user), db: Session = Depends(get_session)):
         'writers': [{**user_out(w), **progress(db, w.id)} for w in writers],
         'units': db.scalar(select(func.count(Unit.id))),
         'segments': db.scalar(select(func.count(Segment.id))),
-        'slots': config.WRITER_SLOTS,
-        'free_slot': free_slot(db),
+        'writers_per_unit': config.WRITERS_PER_UNIT,
+        'short_units': short_units(db),
         'notifications': [{'kind': n.kind, 'message': n.message, 'delivered': n.delivered, 'created_at': n.created_at}
                           for n in db.scalars(select(Notification).order_by(Notification.id.desc()).limit(20))],
         'channels': notify.channels(),
@@ -292,7 +300,6 @@ class NewWriter(BaseModel):
     username: str
     password: str = Field(min_length=8, max_length=200)
     display_name: str = Field(default='', max_length=120)
-    slot: int | None = None  # default: lowest free slot; give a used slot to replace a writer who dropped out
 
 
 @app.post('/api/admin/users')
@@ -302,20 +309,14 @@ def create_writer(body: NewWriter, _: User = Depends(admin_user), db: Session = 
         raise HTTPException(400, 'Username: 3–40 characters, letters, digits, . _ - only')
     if db.query(User).filter_by(username=username).first():
         raise HTTPException(409, 'Username already exists')
-    slot = body.slot or free_slot(db)
-    if slot is None:
-        raise HTTPException(409, f'All {config.WRITER_SLOTS} writer slots are taken. Disable a writer to free '
-                                 'their slot, or choose a slot explicitly to add a replacement.')
-    if not 1 <= slot <= config.WRITER_SLOTS:
-        raise HTTPException(400, f'Slot must be between 1 and {config.WRITER_SLOTS}')
     n = db.scalar(select(func.count(User.id)).where(User.role == 'writer')) + 1
     while db.query(User).filter_by(writer_code=f'W{n}').first():
         n += 1
     user = User(username=username, password_hash=hash_password(body.password), role='writer',
-                display_name=body.display_name.strip() or None, writer_code=f'W{n}', slot=slot)
+                display_name=body.display_name.strip() or None, writer_code=f'W{n}')
     db.add(user)
     db.flush()
-    assign_all(db, user)
+    rebalance(db)  # the new writer takes an even share of the work nobody has started
     db.commit()
     return user_out(user)
 
@@ -334,9 +335,11 @@ def update_writer(user_id: int, body: WriterPatch, _: User = Depends(admin_user)
     if body.password:
         user.password_hash = hash_password(body.password)
         user.token_version += 1
-    if body.active is not None:
+    if body.active is not None and body.active != user.active:
         user.active = body.active
         user.token_version += 1
+        db.flush()
+        rebalance(db)  # share out a disabled writer's unstarted work, or give a returning writer a share again
     if body.display_name is not None:
         user.display_name = body.display_name.strip() or None
     db.commit()
@@ -432,7 +435,7 @@ def delete_unit(unit_id: int, _: User = Depends(admin_user), db: Session = Depen
     return {'ok': True}
 
 
-EXPORT_COLUMNS = ['writer_code', 'writer_slot', 'writer_username', 'unit_order', 'unit_key', 'repeat_of', 'source', 'category',
+EXPORT_COLUMNS = ['writer_code', 'writer_username', 'unit_order', 'unit_key', 'repeat_of', 'source', 'category',
                   'item_id', 'field', 'devanagari', 'romanized', 'r_std', 'answer', 'note', 'edit_count',
                   'created_at', 'updated_at', 'unit_active_ms', 'unit_paste_blocked']
 
@@ -447,7 +450,7 @@ def export_rows(db: Session):
          .where(User.role == 'writer')
          .order_by(User.id, Assignment.ord, Segment.position))
     for w, a, u, s, r, act in db.execute(q):
-        yield {'writer_code': w.writer_code, 'writer_slot': w.slot, 'writer_username': w.username, 'unit_order': a.ord,
+        yield {'writer_code': w.writer_code, 'writer_username': w.username, 'unit_order': a.ord,
                'unit_key': u.unit_key, 'repeat_of': u.repeat_of, 'source': u.source, 'category': u.category,
                'item_id': s.item_id, 'field': s.field, 'devanagari': s.devanagari, 'romanized': r.romanized,
                'r_std': s.r_std, 'answer': s.answer, 'note': r.note, 'edit_count': r.edit_count,
@@ -479,8 +482,8 @@ def export_responses(format: str = 'csv', _: User = Depends(admin_user), db: Ses
 
 @app.get('/api/admin/export/writers')
 def export_writers(_: User = Depends(admin_user), db: Session = Depends(get_session)):
-    cols = ['writer_code', 'slot', 'active', 'username', 'display_name', 'consent', 'completed_at', *PROFILE_KEYS]
-    rows = [{'writer_code': w.writer_code, 'slot': w.slot, 'active': w.active, 'username': w.username, 'display_name': w.display_name,
+    cols = ['writer_code', 'active', 'username', 'display_name', 'consent', 'completed_at', *PROFILE_KEYS]
+    rows = [{'writer_code': w.writer_code, 'active': w.active, 'username': w.username, 'display_name': w.display_name,
              'consent': w.consent, 'completed_at': w.completed_at.isoformat() if w.completed_at else '',
              **{k: (w.profile or {}).get(k, '') for k in PROFILE_KEYS}}
             for w in db.scalars(select(User).where(User.role == 'writer').order_by(User.id))]

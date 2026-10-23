@@ -15,19 +15,21 @@ them only need the workbook's Instructions sheet.
 Regenerate with `python scripts/prepare_annotation.py` (fixed seed, so it produces the same sample).
 Regenerating after sheets have been sent is safe only if nothing in the script changed.
 
-## Design: 600 questions, 6 writers, 3 writers per item
+## Design: 600 questions, 3 writers per item, any number of writers
 
 - NeCCo: 75 items × 6 categories = 450 items (question + 4 options each)
 - Belebele: 82 passages with all 150 of their questions
-- Each unit goes to one of the 20 possible groups of 3 writers (rotating within each category), so every
-  unit is written by exactly 3 writers, each writer does half the units, and each pair of writers shares
-  about 120 questions.
-- 20 NeCCo units (one per writer group) are repeated later under a new number: 10 repeats per writer.
-- Per writer: about 300 questions, 1,600 boxes and 7,900 Devanagari words, roughly 8–9 hours of typing.
+- The app shares the units among the active writers so that every unit is written by exactly 3 of them, the
+  work per writer is even, and pairs of writers overlap evenly. When writers join or leave, units nobody has
+  started are shared out again.
+- 20 NeCCo units are repeated later under a new number, to the same writers as the original.
+- Per writer with 4 writers: about 2,400 boxes, roughly 12 hours of typing (every pair shares about 265 units).
+  With 6 writers: about 1,600 boxes, 8–9 hours (every pair shares about 105 units).
 
 Why this size: 600 questions lets a paired difference of about 5 accuracy points be detected (McNemar,
 α = 0.05, power 0.8, assuming 20% of items flip between conditions); 353 questions would detect only about
-6.6 points. Six writers let writer effects be estimated rather than attributed to three individuals.
+6.6 points. More writers make writer effects easier to estimate rather than attribute to a few individuals;
+six or more is the target, and four is workable.
 
 ## Choosing writers
 
@@ -35,8 +37,8 @@ Why this size: 600 questions lets a paired difference of about 5 accuracy points
   (e.g. Kathmandu Valley, eastern hills, western hills, Terai) and a mix of age groups.
 - Not linguists or NLP people, and not people who have seen this project's romanized data.
 - They must not compare notes with each other until all are done.
-- In the app, create them as writers; slots 1–6 are filled in order. If someone drops out, disable them and
-  create the replacement in the same slot.
+- In the app, create each person as a writer; the work is shared among however many are active (each item still
+  gets 3 writers). If someone drops out, disable them: the items they had not started go to the others.
 
 ## Rules writers must follow (already in the Instructions sheet)
 

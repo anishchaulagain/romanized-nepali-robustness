@@ -5,6 +5,7 @@ import { useLogout } from '../hooks.js';
 import Brand, { Mark } from '../Brand.jsx';
 import { PageError, UnitSkeleton, WriterSkeleton } from '../Skeleton.jsx';
 import { Toast, useToast } from '../Toast.jsx';
+import Progress from '../Progress.jsx';
 
 const DEVANAGARI = /[ऀ-ॿ]/;
 const IDLE_MS = 60_000; // time without any interaction is not counted as active
@@ -301,13 +302,14 @@ export default function Writer() {
       {showHelp && <Instructions onClose={() => { localStorage.setItem(`rn-help-${me.user.username}`, '1'); setShowHelp(false); }} />}
       <header className="topbar">
         <Brand sub="Romanized Nepali writing study" />
-        <span className="count"><b>{done}</b> of {total} boxes written ({pct}%)</span>
+        <div className="top-progress">
+          <Progress pct={pct} label="Your progress" />
+          <span className="count"><b>{done}</b> of {total} boxes ({pct}%)</span>
+        </div>
         <div className="actions">
           <button className="ghost" onClick={() => setShowHelp(true)}>Instructions</button>
           <button className="ghost" onClick={async () => { await save(); logout(); }}>Log out</button>
         </div>
-        <div className="meter" style={{ width: `${pct}%` }} role="progressbar" aria-valuenow={pct}
-          aria-valuemin={0} aria-valuemax={100} aria-label="Progress" />
       </header>
 
       {ord == null ? (
