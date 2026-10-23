@@ -1,12 +1,12 @@
 export function Mark() {
-  return <span className="mark" aria-hidden="true"><b>क</b><i>ka</i></span>;
+  return <span className="mark" aria-hidden="true"><b>अ</b><i>a</i></span>;
 }
 
 export default function Brand({ sub }) {
   return (
     <div className="brand">
       <Mark />
-      <div>Lekhai<small>{sub}</small></div>
+      <div>Akshar<small>{sub}</small></div>
     </div>
   );
 }
