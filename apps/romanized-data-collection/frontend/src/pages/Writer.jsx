@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../api.js';
+import { api, setToken } from '../api.js';
 import { useLogout } from '../hooks.js';
 import Brand, { Mark } from '../Brand.jsx';
 import { PageError, UnitSkeleton, WriterSkeleton } from '../Skeleton.jsx';
@@ -50,6 +50,49 @@ function Instructions({ onClose }) {
         </div>
         <button className="primary" onClick={onClose}>Start writing</button>
       </div>
+    </div>
+  );
+}
+
+function SetPassword({ onDone, onLogout }) {
+  const [password, setPassword] = useState('');
+  const [again, setAgain] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    if (password.length < 8) return setError('Use at least 8 characters.');
+    if (password !== again) return setError('The two passwords do not match.');
+    setBusy(true);
+    try {
+      onDone(await api.post('/api/me/password', { new_password: password }));
+    } catch (err) {
+      setError(err.message);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="center">
+      <form className="card narrow" onSubmit={submit}>
+        <div className="form-head">
+          <Brand sub="Romanized Nepali writing study" />
+          <button type="button" className="ghost" onClick={onLogout}>Log out</button>
+        </div>
+        <h2 style={{ marginTop: '1.2rem' }}>Choose your password</h2>
+        <p className="muted">You logged in with a temporary password. Choose your own to continue; only you will know it.</p>
+        <label>New password
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password" minLength={8} required autoFocus />
+        </label>
+        <label>Type it again
+          <input type="password" value={again} onChange={(e) => setAgain(e.target.value)}
+            autoComplete="new-password" minLength={8} required />
+        </label>
+        {error && <div className="error" role="alert">{error}</div>}
+        <button className="primary" disabled={busy}>{busy ? 'Saving…' : 'Save password'}</button>
+      </form>
     </div>
   );
 }
@@ -154,6 +197,7 @@ export default function Writer() {
   const lastActivity = useRef(Date.now());
   const edits = useRef(0); // bumped on every edit, so a slow save never hides newer unsaved text
   const [retryTick, setRetryTick] = useState(0);
+  const locked = Boolean(me?.user.must_change_password); // no items until the writer sets a password
 
   // Active-time counter: counts only while the tab is visible and the writer interacted recently.
   useEffect(() => {
@@ -186,7 +230,7 @@ export default function Writer() {
   }, [navigate]);
 
   useEffect(() => {
-    if (!ord) return;
+    if (!ord || locked) return;
     setUnit(null);
     api.get(`/api/units/${ord}`).then((u) => {
       setUnit(u);
@@ -198,7 +242,7 @@ export default function Writer() {
       setStatus('');
       window.scrollTo(0, 0);
     }).catch((err) => setError(err.message));
-  }, [ord]);
+  }, [ord, locked]);
 
   const saveNow = useCallback(async ({ force = false } = {}) => {
     if (!unit) return true;
@@ -288,6 +332,10 @@ export default function Writer() {
   }
 
   if (!me) return error ? <PageError message={error} /> : <WriterSkeleton />;
+  if (me.user.must_change_password) {
+    return <SetPassword onLogout={logout}
+      onDone={({ token, user }) => { setToken(token); setMe({ ...me, user }); }} />;
+  }
   if (!me.user.consent) {
     return <ProfileForm user={me.user} onLogout={logout}
       onSaved={(user) => { setMe({ ...me, user }); setShowHelp(true); }} />;
