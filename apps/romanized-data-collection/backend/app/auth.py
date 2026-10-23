@@ -48,14 +48,17 @@ def writer_user(user: User = Depends(current_user)) -> User:
     return user
 
 
-TEMP_WORDS = ['himal', 'nadi', 'pahad', 'tara', 'phul', 'gaun', 'bato', 'dhara', 'akash', 'surya', 'jun', 'megh',
-              'pani', 'kitab', 'kalam', 'akshar', 'ban', 'chari', 'mayur', 'sagar', 'deurali', 'lali']
+# Letters and digits that are hard to confuse when read out or copied by hand (no 0/O/o, 1/l/I).
+TEMP_ALPHABET = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+TEMP_LENGTH = 8
 
 
 def temp_password() -> str:
-    """Easy to read out or type, e.g. himal-4821-nadi."""
-    a, b = secrets.choice(TEMP_WORDS), secrets.choice(TEMP_WORDS)
-    return f'{a}-{secrets.randbelow(9000) + 1000}-{b}'
+    """8 random letters and digits, with at least one of each, e.g. k7Rm3xQa."""
+    while True:
+        pw = ''.join(secrets.choice(TEMP_ALPHABET) for _ in range(TEMP_LENGTH))
+        if any(c.isdigit() for c in pw) and any(c.isalpha() for c in pw):
+            return pw
 
 
 def set_temp_password(user: User, password: str | None = None) -> str:
