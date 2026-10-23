@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from . import config, notify
 from .assign import append_unit_to_writers, rebalance
 from .auth import (admin_user, current_user, ensure_admin, hash_password, issue_token, login_limiter,
-                   verify_password, writer_user)
+                   set_temp_password, verify_password, writer_user)
 from .db import (Assignment, Base, Notification, Response, SessionLocal, Segment, Unit, UnitActivity, User,
                  add_missing_columns, engine, get_session, now)
 from .seed import seed_if_empty
@@ -111,7 +111,8 @@ def short_units(db: Session) -> int:
 
 def user_out(user: User) -> dict:
     return {'id': user.id, 'username': user.username, 'role': user.role, 'display_name': user.display_name,
-            'writer_code': user.writer_code, 'profile': user.profile, 'consent': user.consent,
+            'writer_code': user.writer_code, 'must_change_password': bool(user.must_change_password),
+            'profile': user.profile, 'consent': user.consent,
             'active': user.active, 'completed_at': user.completed_at, 'last_seen_at': user.last_seen_at}
 
 
@@ -155,7 +156,7 @@ def login(body: LoginIn, request: Request, db: Session = Depends(get_session)):
 
 
 class PasswordIn(BaseModel):
-    current_password: str
+    current_password: str = ''
     new_password: str = Field(min_length=8, max_length=200)
 
 
@@ -163,12 +164,17 @@ class PasswordIn(BaseModel):
 def change_password(body: PasswordIn, user: User = Depends(current_user), db: Session = Depends(get_session)):
     if user.role == 'admin':
         raise HTTPException(400, 'The admin password is set with ADMIN_PASSWORD in the environment.')
-    if not verify_password(body.current_password, user.password_hash):
+    # Right after logging in with a temporary password, the writer does not need to type it again.
+    if not user.must_change_password and not verify_password(body.current_password, user.password_hash):
         raise HTTPException(400, 'Current password is wrong')
+    if verify_password(body.new_password, user.password_hash):
+        raise HTTPException(400, 'Choose a password different from the temporary one.')
     user.password_hash = hash_password(body.new_password)
+    user.temp_password = None
+    user.must_change_password = False
     user.token_version += 1
     db.commit()
-    return {'token': issue_token(user)}
+    return {'token': issue_token(user), 'user': user_out(user)}
 
 
 # ---------------------------------------------------------------- writer
@@ -285,7 +291,7 @@ def save_unit(ord_: int, body: UnitIn, user: User = Depends(writer_user), db: Se
 def overview(_: User = Depends(admin_user), db: Session = Depends(get_session)):
     writers = db.scalars(select(User).where(User.role == 'writer').order_by(User.id)).all()
     return {
-        'writers': [{**user_out(w), **progress(db, w.id)} for w in writers],
+        'writers': [{**user_out(w), **progress(db, w.id), 'temp_password': w.temp_password} for w in writers],
         'units': db.scalar(select(func.count(Unit.id))),
         'segments': db.scalar(select(func.count(Segment.id))),
         'writers_per_unit': config.WRITERS_PER_UNIT,
@@ -298,7 +304,7 @@ def overview(_: User = Depends(admin_user), db: Session = Depends(get_session)):
 
 class NewWriter(BaseModel):
     username: str
-    password: str = Field(min_length=8, max_length=200)
+    password: str = Field(default='', max_length=200)  # temporary; generated when empty
     display_name: str = Field(default='', max_length=120)
 
 
@@ -309,20 +315,24 @@ def create_writer(body: NewWriter, _: User = Depends(admin_user), db: Session = 
         raise HTTPException(400, 'Username: 3–40 characters, letters, digits, . _ - only')
     if db.query(User).filter_by(username=username).first():
         raise HTTPException(409, 'Username already exists')
+    if body.password and len(body.password) < 8:
+        raise HTTPException(400, 'Password: at least 8 characters, or leave it empty to generate one')
     n = db.scalar(select(func.count(User.id)).where(User.role == 'writer')) + 1
     while db.query(User).filter_by(writer_code=f'W{n}').first():
         n += 1
-    user = User(username=username, password_hash=hash_password(body.password), role='writer',
+    user = User(username=username, password_hash='', role='writer',
                 display_name=body.display_name.strip() or None, writer_code=f'W{n}')
+    set_temp_password(user, body.password.strip() or None)
     db.add(user)
     db.flush()
     rebalance(db)  # the new writer takes an even share of the work nobody has started
     db.commit()
-    return user_out(user)
+    return {**user_out(user), 'temp_password': user.temp_password}
 
 
 class WriterPatch(BaseModel):
-    password: str | None = Field(default=None, min_length=8, max_length=200)
+    password: str | None = Field(default=None, min_length=8, max_length=200)  # becomes a temporary password
+    new_temp_password: bool = False  # generate a temporary password
     active: bool | None = None
     display_name: str | None = Field(default=None, max_length=120)
 
@@ -332,9 +342,8 @@ def update_writer(user_id: int, body: WriterPatch, _: User = Depends(admin_user)
     user = db.get(User, user_id)
     if not user or user.role != 'writer':
         raise HTTPException(404, 'Writer not found')
-    if body.password:
-        user.password_hash = hash_password(body.password)
-        user.token_version += 1
+    if body.password or body.new_temp_password:
+        set_temp_password(user, body.password)
     if body.active is not None and body.active != user.active:
         user.active = body.active
         user.token_version += 1
@@ -343,7 +352,7 @@ def update_writer(user_id: int, body: WriterPatch, _: User = Depends(admin_user)
     if body.display_name is not None:
         user.display_name = body.display_name.strip() or None
     db.commit()
-    return user_out(user)
+    return {**user_out(user), 'temp_password': user.temp_password}
 
 
 @app.get('/api/admin/units')

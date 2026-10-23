@@ -241,6 +241,10 @@ td.num { font-variant-numeric: tabular-nums; }
 .topbar .sk { display: inline-block; }
 @keyframes sk-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.creds { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.creds code { background: #fff; }
+.temp-pw { display: inline-flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.temp-pw button { padding: .2rem .6rem; font-size: .85rem; }
 .form-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 
 @media (max-width: 760px) {

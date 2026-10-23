@@ -50,6 +50,10 @@ class User(Base):
     consent: Mapped[bool | None] = mapped_column(Boolean)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     token_version: Mapped[int] = mapped_column(Integer, default=0)
+    # Set by the admin and shown to them so it can be passed on; cleared once the writer sets their own password,
+    # which is only ever stored hashed.
+    temp_password: Mapped[str | None] = mapped_column(String(200))
+    must_change_password: Mapped[bool | None] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -120,7 +124,8 @@ class Notification(Base):
 def add_missing_columns():
     """create_all() does not alter existing tables; add columns introduced after the first deploy."""
     insp = inspect(engine)
-    added = {'users': {'slot': 'INTEGER'}, 'units': {'writer_slots': 'JSON'}}
+    added = {'users': {'slot': 'INTEGER', 'temp_password': 'VARCHAR(200)', 'must_change_password': 'BOOLEAN'},
+             'units': {'writer_slots': 'JSON'}}
     with engine.begin() as conn:
         for table, cols in added.items():
             have = {c['name'] for c in insp.get_columns(table)}

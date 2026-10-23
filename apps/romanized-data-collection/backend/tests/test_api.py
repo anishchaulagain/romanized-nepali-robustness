@@ -27,6 +27,19 @@ def auth(client, username, password):
     return {'Authorization': f"Bearer {r.json()['token']}"}
 
 
+def create_writer(client, admin, username, password='writer-pass-1'):
+    """Admin creates a writer with a generated temporary password; the writer logs in and sets their own."""
+    r = client.post('/api/admin/users', headers=admin, json={'username': username})
+    assert r.status_code == 200, r.text
+    temp = r.json()['temp_password']
+    h = auth(client, username, temp)
+    assert client.get('/api/me', headers=h).json()['user']['must_change_password'] is True
+    assert client.get('/api/units/1', headers=h).status_code == 403  # nothing else until the password is changed
+    r = client.post('/api/me/password', headers=h, json={'new_password': password})
+    assert r.status_code == 200 and r.json()['user']['must_change_password'] is False, r.text
+    return r.json()['user']
+
+
 def fill_all(client, h, text='lekhyo'):
     while True:
         me = client.get('/api/me', headers=h).json()
@@ -44,12 +57,13 @@ def test_full_flow():
         ov = c.get('/api/admin/overview', headers=admin).json()
         assert ov['units'] == 552 and ov['segments'] == 3182 and ov['writers_per_unit'] == 3
 
-        assert c.post('/api/admin/users', headers=admin, json={'username': 'ram', 'password': 'short'}).status_code == 422
+        assert c.post('/api/admin/users', headers=admin, json={'username': 'ram', 'password': 'short'}).status_code == 400
         # With fewer writers than 3 per item, every writer gets every item.
         for name in ('ram', 'sita'):
-            r = c.post('/api/admin/users', headers=admin, json={'username': name, 'password': 'writer-pass-1'})
-            assert r.status_code == 200, r.text
+            create_writer(c, admin, name)
             assert c.get('/api/admin/overview', headers=admin).json()['short_units'] == 0
+        # Once a writer has set their own password, the admin no longer sees one.
+        assert all(w['temp_password'] is None for w in c.get('/api/admin/overview', headers=admin).json()['writers'])
         codes = [w['writer_code'] for w in c.get('/api/admin/overview', headers=admin).json()['writers']]
         assert codes == ['W1', 'W2']
 
@@ -78,7 +92,7 @@ def test_full_flow():
 
         # Four writers: every item goes to exactly 3 of them, and the work is shared evenly.
         for name in ('hari', 'gita'):
-            assert c.post('/api/admin/users', headers=admin, json={'username': name, 'password': 'writer-pass-1'}).status_code == 200
+            create_writer(c, admin, name)
         ov = c.get('/api/admin/overview', headers=admin).json()
         assert ov['short_units'] == 0
         totals = [w['total'] for w in ov['writers']]
@@ -132,10 +146,23 @@ def test_full_flow():
         assert ov['short_units'] > 0  # fewer than 3 *active* writers on gita's items, but they are written
         assert all(w['done'] == w['total'] and w['completed_at'] for w in ov['writers'] if w['active'])
 
-        # Password reset logs the writer out.
-        c.patch(f"/api/admin/users/{ov['writers'][0]['id']}", headers=admin, json={'password': 'new-pass-123'})
-        assert c.get('/api/me', headers=ram).status_code == 401
-        auth(c, 'ram', 'new-pass-123')
+        # A reset gives a new temporary password: the writer is logged out and must set their own again.
+        ram_id = ov['writers'][0]['id']
+        r = c.patch(f'/api/admin/users/{ram_id}', headers=admin, json={'new_temp_password': True})
+        temp = r.json()['temp_password']
+        assert temp and c.get('/api/me', headers=ram).status_code == 401
+        assert next(w for w in c.get('/api/admin/overview', headers=admin).json()['writers'] if w['id'] == ram_id)['temp_password'] == temp
+        ram = auth(c, 'ram', temp)
+        assert c.get('/api/units/1', headers=ram).status_code == 403
+        same = c.post('/api/me/password', headers=ram, json={'new_password': temp})
+        assert same.status_code == 400  # must differ from the temporary one
+        assert c.post('/api/me/password', headers=ram, json={'new_password': 'mero-naya-pass'}).status_code == 200
+        ram = auth(c, 'ram', 'mero-naya-pass')
+        assert c.get('/api/units/1', headers=ram).status_code == 200
+        # Changing it later needs the current password.
+        assert c.post('/api/me/password', headers=ram, json={'new_password': 'arko-pass-123'}).status_code == 400
+        assert c.post('/api/me/password', headers=ram, json={'current_password': 'mero-naya-pass',
+                                                             'new_password': 'arko-pass-123'}).status_code == 200
 
 
 def test_concurrent_first_saves_do_not_fail():
@@ -148,7 +175,7 @@ def test_concurrent_first_saves_do_not_fail():
 
     with TestClient(app) as c:
         admin = auth(c, 'admin', 'admin-pass-123')
-        c.post('/api/admin/users', headers=admin, json={'username': 'racer', 'password': 'writer-pass-1'})
+        create_writer(c, admin, 'racer')
         w = auth(c, 'racer', 'writer-pass-1')
         c.put('/api/me/profile', headers=w, json={'profile': {}, 'consent': True})
         # Everything else is already written, so new items go to the least-loaded writer: racer.

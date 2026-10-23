@@ -100,26 +100,67 @@ function Overview({ data, reload }) {
   );
 }
 
+function loginText(username, password) {
+  return `Akshar login\n${window.location.origin}/login\nUsername: ${username}\nTemporary password: ${password}\n`
+    + 'You will choose your own password after logging in.';
+}
+
+function CopyButton({ text, label = 'Copy' }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      window.prompt('Copy this:', text);
+    }
+  }
+  return <button type="button" onClick={copy}>{copied ? 'Copied' : label}</button>;
+}
+
+function Credentials({ username, password, title }) {
+  return (
+    <div className="card notice creds" role="status">
+      <div>
+        <b>{title}</b>
+        <div>Username <code>{username}</code>, temporary password <code>{password}</code></div>
+        <div className="muted">They choose their own password when they first log in.</div>
+      </div>
+      <CopyButton text={loginText(username, password)} label="Copy login details" />
+    </div>
+  );
+}
+
 function Writers({ data, reload }) {
   const [form, setForm] = useState({ username: '', password: '', display_name: '' });
   const [msg, setMsg] = useState('');
+  const [creds, setCreds] = useState(null);
 
   async function create(e) {
     e.preventDefault();
     try {
       const w = await api.post('/api/admin/users', form);
-      setMsg(`Created ${w.username} (${w.writer_code}). Send them the username and password.`);
+      setMsg('');
+      setCreds({ title: `Created ${w.username} (${w.writer_code})`, username: w.username, password: w.temp_password });
       setForm({ username: '', password: '', display_name: '' });
       reload();
     } catch (err) {
+      setCreds(null);
       setMsg(err.message);
     }
   }
 
   async function patch(w, body, done) {
     try {
-      await api.patch(`/api/admin/users/${w.id}`, body);
-      setMsg(done);
+      const res = await api.patch(`/api/admin/users/${w.id}`, body);
+      if (body.new_temp_password) {
+        setMsg('');
+        setCreds({ title: `New temporary password for ${w.username}`, username: w.username, password: res.temp_password });
+      } else {
+        setCreds(null);
+        setMsg(done);
+      }
       reload();
     } catch (err) {
       setMsg(err.message);
@@ -132,33 +173,41 @@ function Writers({ data, reload }) {
         <h3>Create writer</h3>
         <label>Username<input value={form.username} required autoCapitalize="off"
           onChange={(e) => setForm({ ...form, username: e.target.value })} /></label>
-        <label>Password (min. 8)<input value={form.password} required minLength={8}
+        <label>Temporary password<input value={form.password} minLength={8} placeholder="Leave empty to generate one"
           onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
         <label>Display name (private)<input value={form.display_name}
           onChange={(e) => setForm({ ...form, display_name: e.target.value })} /></label>
         <button className="primary">Create writer</button>
         <p className="muted span">
           Each item is written by {data.writers_per_unit} people. When you add, disable or enable a writer, the items
-          nobody has started are shared out again evenly. Work a writer has started stays with them.
+          nobody has started are shared out again evenly. Work a writer has started stays with them. New writers
+          get a temporary password and choose their own when they first log in.
         </p>
       </form>
+      {creds && <Credentials {...creds} />}
       {msg && <div className="card notice" role="status">{msg}</div>}
       <div className="card">
         <h3>All writers</h3>
         <div className="table-wrap"><table>
-          <thead><tr><th>Code</th><th>Username</th><th>Name</th><th>Items</th><th>Region</th><th></th></tr></thead>
+          <thead><tr><th>Code</th><th>Username</th><th>Name</th><th>Password</th><th>Items</th><th>Region</th><th></th></tr></thead>
           <tbody>
             {data.writers.map((w) => (
               <tr key={w.id} className={w.active ? '' : 'inactive'}>
                 <td>{w.writer_code}</td>
                 <td>{w.username}</td>
                 <td>{w.display_name || '—'}</td>
+                <td>
+                  {w.temp_password ? (
+                    <span className="temp-pw"><code>{w.temp_password}</code>
+                      <CopyButton text={loginText(w.username, w.temp_password)} /></span>
+                  ) : <span className="muted">Set by writer</span>}
+                </td>
                 <td className="num">{w.active ? w.units : '—'}</td>
                 <td>{w.profile?.home_region || '—'}</td>
                 <td className="row-actions">
                   <button onClick={() => {
-                    const p = window.prompt(`New password for ${w.username} (min. 8 characters)`);
-                    if (p) patch(w, { password: p }, `Password for ${w.username} changed.`);
+                    if (window.confirm(`Give ${w.username} a new temporary password? They will be logged out and `
+                      + 'must choose a new password at their next login.')) patch(w, { new_temp_password: true });
                   }}>Reset password</button>
                   <button onClick={() => patch(w, { active: !w.active }, `${w.username} ${w.active ? 'disabled' : 'enabled'}.`)}>
                     {w.active ? 'Disable' : 'Enable'}

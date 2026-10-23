@@ -1,3 +1,4 @@
+import secrets
 import time
 from collections import defaultdict, deque
 from datetime import timedelta
@@ -42,7 +43,29 @@ def current_user(request: Request, db: Session = Depends(get_session)) -> User:
 def writer_user(user: User = Depends(current_user)) -> User:
     if user.role != 'writer':
         raise HTTPException(403, 'Writers only')
+    if user.must_change_password:
+        raise HTTPException(403, 'Please set your own password first.')
     return user
+
+
+TEMP_WORDS = ['himal', 'nadi', 'pahad', 'tara', 'phul', 'gaun', 'bato', 'dhara', 'akash', 'surya', 'jun', 'megh',
+              'pani', 'kitab', 'kalam', 'akshar', 'ban', 'chari', 'mayur', 'sagar', 'deurali', 'lali']
+
+
+def temp_password() -> str:
+    """Easy to read out or type, e.g. himal-4821-nadi."""
+    a, b = secrets.choice(TEMP_WORDS), secrets.choice(TEMP_WORDS)
+    return f'{a}-{secrets.randbelow(9000) + 1000}-{b}'
+
+
+def set_temp_password(user: User, password: str | None = None) -> str:
+    """Give a writer a temporary password they must replace at their next login; ends their other sessions."""
+    password = password or temp_password()
+    user.password_hash = hash_password(password)
+    user.temp_password = password
+    user.must_change_password = True
+    user.token_version = (user.token_version or 0) + 1  # unset on a writer not yet saved
+    return password
 
 
 def admin_user(user: User = Depends(current_user)) -> User:
