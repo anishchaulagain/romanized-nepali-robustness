@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { useLogout } from '../hooks.js';
 import Brand, { Mark } from '../Brand.jsx';
 import { PageError, UnitSkeleton, WriterSkeleton } from '../Skeleton.jsx';
+import { Toast, useToast } from '../Toast.jsx';
 
 const DEVANAGARI = /[ऀ-ॿ]/;
 const IDLE_MS = 60_000; // time without any interaction is not counted as active
@@ -124,6 +125,7 @@ function AutoTextarea({ value, onChange, invalid, rows = 1, ...rest }) {
 export default function Writer() {
   const navigate = useNavigate();
   const logout = useLogout();
+  const [toast, showToast] = useToast();
   const [me, setMe] = useState(null);
   const [ord, setOrd] = useState(null);
   const [unit, setUnit] = useState(null);
@@ -236,16 +238,29 @@ export default function Writer() {
   async function saveAndNext() {
     const empty = unit.segments.filter((s) => !(values[s.id] || '').trim());
     if (empty.length) {
-      setError(`Please fill in all ${empty.length} empty box${empty.length > 1 ? 'es' : ''} before going on.`);
+      const msg = `Please fill in all ${empty.length} empty box${empty.length > 1 ? 'es' : ''} before going on.`;
+      setError(msg);
+      showToast(msg, 'error');
       return;
     }
     // Always save here, so where to go next comes from the server and not from an older save's answer.
     const res = await save({ force: true });
-    if (res === false) return;
+    if (res === false) return showToast('Not saved. See the message above the buttons.', 'error');
     const nextOrd = res.next_ord;
     const hasNext = unit.ord < unit.total_units;
-    if (nextOrd == null && !(reviewing && hasNext)) setOrd(null); // everything written: show the done screen
-    else setOrd(hasNext ? unit.ord + 1 : nextOrd);
+    if (nextOrd == null && !(reviewing && hasNext)) {
+      setOrd(null); // everything written: show the done screen
+      showToast('Saved. Every item is written.');
+    } else {
+      setOrd(hasNext ? unit.ord + 1 : nextOrd);
+      showToast(`Item ${unit.ord} saved`);
+    }
+  }
+
+  async function saveHere() {
+    const res = await save({ force: true });
+    if (res === false) showToast('Not saved. See the message above the buttons.', 'error');
+    else showToast(`Item ${unit.ord} saved`);
   }
 
   function blockPaste(e) {
@@ -265,6 +280,7 @@ export default function Writer() {
 
   return (
     <div className="page">
+      <Toast toast={toast} />
       {showHelp && <Instructions onClose={() => { localStorage.setItem(`rn-help-${me.user.username}`, '1'); setShowHelp(false); }} />}
       <header className="topbar">
         <Brand sub="Romanized Nepali writing study" />
@@ -330,7 +346,7 @@ export default function Writer() {
             <div className="dock-inner">
               <button onClick={() => goTo(unit.ord - 1)} disabled={unit.ord <= 1}>Previous</button>
               <span className="spacer" />
-              <button className="save-only" onClick={() => save({ force: true })}>Save</button>
+              <button className="save-only" onClick={saveHere}>Save</button>
               <button className="primary" onClick={saveAndNext}>Save and next</button>
             </div>
           </div>
