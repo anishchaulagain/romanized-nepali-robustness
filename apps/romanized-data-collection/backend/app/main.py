@@ -5,6 +5,7 @@ import re
 import threading
 import uuid
 from contextlib import asynccontextmanager
+from datetime import timedelta, timezone
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
@@ -20,7 +21,7 @@ from .assign import append_unit_to_writers, rebalance
 from .auth import (admin_user, current_user, ensure_admin, hash_password, issue_token, login_limiter,
                    set_temp_password, verify_password, writer_user)
 from .db import (Assignment, Base, Notification, Response, SessionLocal, Segment, Unit, UnitActivity, User,
-                 add_missing_columns, engine, get_session, now)
+                 add_missing_columns, engine, get_session, now, schema_is_current)
 from .seed import seed_if_empty
 
 DEVANAGARI = re.compile(r'[ऀ-ॿ]')
@@ -39,8 +40,9 @@ def initialize():
     with _init_lock:
         if _initialized:
             return
-        Base.metadata.create_all(engine)
-        add_missing_columns()
+        if not schema_is_current():
+            Base.metadata.create_all(engine)
+            add_missing_columns()
         with SessionLocal() as db:
             ensure_admin(db)
             seed_if_empty(db)
@@ -81,32 +83,58 @@ app.add_middleware(CORSMiddleware, allow_origins=config.FRONTEND_ORIGINS, allow_
 
 
 # ---------------------------------------------------------------- helpers
+# Every query is a round trip to the database, so the helpers below each answer in a single query.
+def _progress_columns(user_id: int):
+    total = (select(func.count(Segment.id)).join(Assignment, Assignment.unit_id == Segment.unit_id)
+             .where(Assignment.user_id == user_id).scalar_subquery())
+    done = select(func.count()).select_from(Response).where(Response.user_id == user_id).scalar_subquery()
+    units = select(func.count()).select_from(Assignment).where(Assignment.user_id == user_id).scalar_subquery()
+    return done, total, units
+
+
+def _next_column(user_id: int):
+    return (select(func.min(Assignment.ord))
+            .join(Segment, Segment.unit_id == Assignment.unit_id)
+            .outerjoin(Response, and_(Response.segment_id == Segment.id, Response.user_id == Assignment.user_id))
+            .where(Assignment.user_id == user_id, Response.segment_id.is_(None)).scalar_subquery())
+
+
 def progress(db: Session, user_id: int) -> dict:
-    total = db.scalar(select(func.count(Segment.id)).join(Assignment, Assignment.unit_id == Segment.unit_id)
-                      .where(Assignment.user_id == user_id)) or 0
-    done = db.scalar(select(func.count()).select_from(Response).where(Response.user_id == user_id)) or 0
-    units = db.scalar(select(func.count()).select_from(Assignment).where(Assignment.user_id == user_id)) or 0
-    return {'done': done, 'total': total, 'units': units}
+    done, total, units = db.execute(select(*_progress_columns(user_id))).one()
+    return {'done': done or 0, 'total': total or 0, 'units': units or 0}
+
+
+def writer_state(db: Session, user_id: int) -> tuple[dict, int | None]:
+    """Progress and the first unfinished item, in one query."""
+    done, total, units, next_ord = db.execute(select(*_progress_columns(user_id), _next_column(user_id))).one()
+    return {'done': done or 0, 'total': total or 0, 'units': units or 0}, next_ord
 
 
 def next_unfinished(db: Session, user_id: int):
-    missing = (select(func.min(Assignment.ord))
-               .join(Segment, Segment.unit_id == Assignment.unit_id)
-               .outerjoin(Response, and_(Response.segment_id == Segment.id, Response.user_id == Assignment.user_id))
-               .where(Assignment.user_id == user_id, Response.segment_id.is_(None)))
-    return db.scalar(missing)
+    return db.scalar(select(_next_column(user_id)))
+
+
+def all_progress(db: Session) -> dict[int, dict]:
+    """Progress of every writer in two queries (instead of three per writer)."""
+    seg_count = select(Segment.unit_id, func.count().label('n')).group_by(Segment.unit_id).subquery()
+    assigned = db.execute(select(Assignment.user_id, func.count(), func.coalesce(func.sum(seg_count.c.n), 0))
+                          .join(seg_count, seg_count.c.unit_id == Assignment.unit_id)
+                          .group_by(Assignment.user_id)).all()
+    done = dict(db.execute(select(Response.user_id, func.count()).group_by(Response.user_id)).all())
+    out = {uid: {'done': done.get(uid, 0), 'total': int(total), 'units': units} for uid, units, total in assigned}
+    return out
 
 
 def short_units(db: Session) -> int:
     """Units that fewer active writers are assigned to than the design asks for (0 when the work is fully shared)."""
-    n_active = db.scalar(select(func.count(User.id)).where(User.role == 'writer', User.active.is_(True))) or 0
-    need = min(config.WRITERS_PER_UNIT, n_active)
-    if not need:
-        return 0
+    n_active = (select(func.count(User.id)).where(User.role == 'writer', User.active.is_(True))).scalar_subquery()
     per_unit = (select(Assignment.unit_id, func.count().label('n')).join(User, User.id == Assignment.user_id)
                 .where(User.active.is_(True)).group_by(Assignment.unit_id).subquery())
-    covered = db.scalar(select(func.count()).select_from(per_unit).where(per_unit.c.n >= need)) or 0
-    return (db.scalar(select(func.count(Unit.id))) or 0) - covered
+    need = func.min(config.WRITERS_PER_UNIT, n_active) if engine.dialect.name == 'sqlite' \
+        else func.least(config.WRITERS_PER_UNIT, n_active)
+    covered = select(func.count()).select_from(per_unit).where(per_unit.c.n >= need).scalar_subquery()
+    active, total, ok = db.execute(select(n_active, select(func.count(Unit.id)).scalar_subquery(), covered)).one()
+    return 0 if not active else (total or 0) - (ok or 0)
 
 
 def user_out(user: User) -> dict:
@@ -116,8 +144,8 @@ def user_out(user: User) -> dict:
             'active': user.active, 'completed_at': user.completed_at, 'last_seen_at': user.last_seen_at}
 
 
-def check_completion(db: Session, user: User):
-    p = progress(db, user.id)
+def check_completion(db: Session, user: User, p: dict | None = None):
+    p = p or progress(db, user.id)
     if user.completed_at or p['total'] == 0 or p['done'] < p['total']:
         return
     user.completed_at = now()
@@ -180,13 +208,18 @@ def change_password(body: PasswordIn, user: User = Depends(current_user), db: Se
 # ---------------------------------------------------------------- writer
 @app.get('/api/me')
 def me(user: User = Depends(current_user), db: Session = Depends(get_session)):
-    user.last_seen_at = now()
-    db.commit()
+    # "Last seen" only needs minute precision; skipping the write saves a round trip on most calls.
+    if not user.last_seen_at or now() - _aware(user.last_seen_at) > timedelta(minutes=5):
+        user.last_seen_at = now()
+        db.commit()
     out = {'user': user_out(user)}
     if user.role == 'writer':
-        out['progress'] = progress(db, user.id)
-        out['next_ord'] = next_unfinished(db, user.id)
+        out['progress'], out['next_ord'] = writer_state(db, user.id)
     return out
+
+
+def _aware(dt):
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)  # SQLite returns naive datetimes
 
 
 class ProfileIn(BaseModel):
@@ -211,17 +244,21 @@ def assignment_at(db: Session, user: User, ord_: int) -> Assignment:
 
 @app.get('/api/units/{ord_}')
 def get_unit(ord_: int, user: User = Depends(writer_user), db: Session = Depends(get_session)):
-    a = assignment_at(db, user, ord_)
-    segs = db.scalars(select(Segment).where(Segment.unit_id == a.unit_id).order_by(Segment.position)).all()
-    resp = {r.segment_id: r for r in db.scalars(select(Response).where(
-        Response.user_id == user.id, Response.segment_id.in_([s.id for s in segs])))}
+    n_units = select(func.count()).select_from(Assignment).where(Assignment.user_id == user.id).scalar_subquery()
+    found = db.execute(select(Assignment.unit_id, n_units)
+                       .where(Assignment.user_id == user.id, Assignment.ord == ord_)).first()
+    if not found:
+        raise HTTPException(404, 'No such item')
+    unit_id, total_units = found
+    rows = db.execute(select(Segment, Response)
+                      .outerjoin(Response, and_(Response.segment_id == Segment.id, Response.user_id == user.id))
+                      .where(Segment.unit_id == unit_id).order_by(Segment.position)).all()
     return {
         'ord': ord_,
-        'total_units': progress(db, user.id)['units'],
+        'total_units': total_units,
         # Only what the writer needs: no source, category, existing romanization or answer.
         'segments': [{'id': s.id, 'label': s.label, 'field': s.field, 'devanagari': s.devanagari,
-                      'romanized': resp[s.id].romanized if s.id in resp else '',
-                      'note': resp[s.id].note if s.id in resp else ''} for s in segs],
+                      'romanized': r.romanized if r else '', 'note': (r.note or '') if r else ''} for s, r in rows],
     }
 
 
@@ -242,17 +279,24 @@ def save_unit(ord_: int, body: UnitIn, user: User = Depends(writer_user), db: Se
     if not user.consent:
         raise HTTPException(400, 'Please complete the About You form first')
     a = assignment_at(db, user, ord_)
-    seg_ids = set(db.scalars(select(Segment.id).where(Segment.unit_id == a.unit_id)))
+
+    def load():  # this item's boxes with the writer's saved answers, in one query
+        return dict(db.execute(select(Segment.id, Response)
+                               .outerjoin(Response, and_(Response.segment_id == Segment.id,
+                                                         Response.user_id == user.id))
+                               .where(Segment.unit_id == a.unit_id)).all())
+
+    saved = load()
     for r in body.responses:
-        if r.segment_id not in seg_ids:
+        if r.segment_id not in saved:
             raise HTTPException(400, 'Segment does not belong to this item')
         if DEVANAGARI.search(r.romanized):
             raise HTTPException(422, 'Please write in English letters only (no Devanagari).')
 
-    def apply():
+    def apply(saved):
         for r in body.responses:
             text = r.romanized.strip()
-            existing = db.get(Response, (user.id, r.segment_id))
+            existing = saved.get(r.segment_id)
             if not text:
                 if existing:
                     db.delete(existing)
@@ -275,25 +319,31 @@ def save_unit(ord_: int, body: UnitIn, user: User = Depends(writer_user), db: Se
     # to insert the same new rows; the loser rolls back and applies again, now updating the winner's rows.
     for attempt in range(3):
         try:
-            apply()
+            apply(saved)
             db.commit()
             break
         except IntegrityError:
             db.rollback()
             if attempt == 2:
                 raise HTTPException(409, 'This item was being saved twice at once. Please press Save again.')
-    check_completion(db, user)
-    return {'progress': progress(db, user.id), 'next_ord': next_unfinished(db, user.id)}
+            saved = load()  # the other save's rows now exist; update them instead
+    p, next_ord = writer_state(db, user.id)
+    check_completion(db, user, p)
+    return {'progress': p, 'next_ord': next_ord}
 
 
 # ---------------------------------------------------------------- admin
 @app.get('/api/admin/overview')
 def overview(_: User = Depends(admin_user), db: Session = Depends(get_session)):
     writers = db.scalars(select(User).where(User.role == 'writer').order_by(User.id)).all()
+    stats = all_progress(db)
+    empty = {'done': 0, 'total': 0, 'units': 0}
+    n_units, n_segments = db.execute(select(select(func.count(Unit.id)).scalar_subquery(),
+                                            select(func.count(Segment.id)).scalar_subquery())).one()
     return {
-        'writers': [{**user_out(w), **progress(db, w.id), 'temp_password': w.temp_password} for w in writers],
-        'units': db.scalar(select(func.count(Unit.id))),
-        'segments': db.scalar(select(func.count(Segment.id))),
+        'writers': [{**user_out(w), **stats.get(w.id, empty), 'temp_password': w.temp_password} for w in writers],
+        'units': n_units,
+        'segments': n_segments,
         'writers_per_unit': config.WRITERS_PER_UNIT,
         'short_units': short_units(db),
         'notifications': [{'kind': n.kind, 'message': n.message, 'delivered': n.delivered, 'created_at': n.created_at}
@@ -366,9 +416,13 @@ def list_units(q: str = '', offset: int = 0, limit: int = 20, _: User = Depends(
     units = db.scalars(query.offset(offset).limit(min(limit, 100))).all()
     counts = dict(db.execute(select(Segment.unit_id, func.count(Response.segment_id)).join(Response)
                              .where(Segment.unit_id.in_([u.id for u in units])).group_by(Segment.unit_id)).all())
+    by_unit = {}
+    for s in db.scalars(select(Segment).where(Segment.unit_id.in_([u.id for u in units]))
+                        .order_by(Segment.unit_id, Segment.position)):
+        by_unit.setdefault(s.unit_id, []).append(s)
     out = []
     for u in units:
-        segs = db.scalars(select(Segment).where(Segment.unit_id == u.id).order_by(Segment.position)).all()
+        segs = by_unit.get(u.id, [])
         out.append({'id': u.id, 'unit_key': u.unit_key, 'source': u.source, 'category': u.category,
                     'repeat_of': u.repeat_of, 'responses': counts.get(u.id, 0),
                     'segments': [{'label': s.label, 'devanagari': s.devanagari, 'r_std': s.r_std, 'answer': s.answer}

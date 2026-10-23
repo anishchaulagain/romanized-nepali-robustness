@@ -57,6 +57,12 @@ Tests run on a temporary SQLite database: `python -m pytest -q tests` (from `bac
    Set `VITE_API_URL=https://<backend>.vercel.app`. Deploy.
 3. Back in the backend project, set `FRONTEND_ORIGINS` and `APP_URL` to the frontend URL and redeploy.
 
+**Speed:** every database query is a round trip between the backend function and the database, so the function
+must run in the Vercel region closest to the Aiven database. `backend/vercel.json` pins it to `bom1` (Mumbai), the
+closest region to an Aiven database in India (`do-blr`, `aws-ap-south-1`, `google-asia-south1`). If the database
+is elsewhere, change it (for example `sin1` for Singapore). With the default US region, every query took
+about 220 ms instead of about 20 ms.
+
 The backend can also run on any server that runs Python (Render, Railway, a VPS) with
 `uvicorn app.main:app --host 0.0.0.0 --port $PORT`; only `VITE_API_URL` changes.
 

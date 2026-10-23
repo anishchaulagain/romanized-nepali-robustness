@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 from sqlalchemy import (JSON, BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text,
                         UniqueConstraint, create_engine, inspect, text)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
-from sqlalchemy.pool import NullPool
 
 from . import config
 
@@ -19,7 +18,10 @@ def _engine():
         if config.DATABASE_CA_CERT_PATH:
             kwargs['connect_args'] = {'sslmode': 'verify-full', 'sslrootcert': config.DATABASE_CA_CERT_PATH}
         if config.SERVERLESS:
-            kwargs['poolclass'] = NullPool  # each serverless instance must not hold idle connections
+            # A warm serverless instance reuses one connection: opening a new TLS connection to the database
+            # costs several round trips, far more than the request itself. Kept small so instances that sit idle
+            # hold at most a couple of connections, and recycled before the database or network drops them.
+            kwargs.update(pool_size=1, max_overflow=2, pool_recycle=240)
         else:
             kwargs.update(pool_size=5, max_overflow=5)
     return create_engine(url, **kwargs)
@@ -119,6 +121,20 @@ class Notification(Base):
     message: Mapped[str] = mapped_column(Text)
     delivered: Mapped[str | None] = mapped_column(String(80))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+def schema_is_current() -> bool:
+    """One query: do all tables and columns of the models exist? Lets a cold start skip create_all, which checks
+    each table with a separate round trip."""
+    if engine.dialect.name != 'postgresql':
+        return False
+    with engine.connect() as conn:
+        rows = conn.execute(text('SELECT table_name, column_name FROM information_schema.columns '
+                                 'WHERE table_schema = current_schema()')).all()
+    have = {}
+    for table, column in rows:
+        have.setdefault(table, set()).add(column)
+    return all({c.name for c in t.columns} <= have.get(t.name, set()) for t in Base.metadata.sorted_tables)
 
 
 def add_missing_columns():
