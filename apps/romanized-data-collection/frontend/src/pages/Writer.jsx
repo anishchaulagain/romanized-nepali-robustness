@@ -6,6 +6,7 @@ import Brand, { Mark } from '../Brand.jsx';
 import { PageError, UnitSkeleton, WriterSkeleton } from '../Skeleton.jsx';
 import { Toast, useToast } from '../Toast.jsx';
 import Progress from '../Progress.jsx';
+import { Button, useActionLock } from '../Button.jsx';
 
 const DEVANAGARI = /[ऀ-ॿ]/;
 const IDLE_MS = 60_000; // time without any interaction is not counted as active
@@ -91,7 +92,7 @@ function SetPassword({ onDone, onLogout }) {
             autoComplete="new-password" minLength={8} required />
         </label>
         {error && <div className="error" role="alert">{error}</div>}
-        <button className="primary" disabled={busy}>{busy ? 'Saving…' : 'Save password'}</button>
+        <Button className="primary" busy={busy}>{busy ? 'Saving…' : 'Save password'}</Button>
       </form>
     </div>
   );
@@ -101,14 +102,18 @@ function ProfileForm({ user, onSaved, onLogout }) {
   const [profile, setProfile] = useState(user.profile || {});
   const [consent, setConsent] = useState(Boolean(user.consent));
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
   async function submit(e) {
     e.preventDefault();
+    if (busy) return;
     if (!consent) return setError('Please tick the consent box to continue.');
+    setBusy(true);
     try {
       const res = await api.put('/api/me/profile', { profile, consent });
       onSaved(res.user);
     } catch (err) {
+      setBusy(false);
       setError(err.message);
     }
   }
@@ -140,7 +145,7 @@ function ProfileForm({ user, onSaved, onLogout }) {
           I agree that my anonymous writing may be published in a research dataset.
         </label>
         {error && <div className="error" role="alert">{error}</div>}
-        <button className="primary">Save and continue</button>
+        <Button className="primary" busy={busy}>{busy ? 'Saving…' : 'Save and continue'}</Button>
       </form>
     </div>
   );
@@ -180,6 +185,7 @@ export default function Writer() {
   const navigate = useNavigate();
   const logout = useLogout();
   const [toast, showToast] = useToast();
+  const [pending, runAction] = useActionLock(); // Previous, Next, Go, Log out: one at a time
   const [me, setMe] = useState(null);
   const [ord, setOrd] = useState(null);
   const [unit, setUnit] = useState(null);
@@ -356,7 +362,8 @@ export default function Writer() {
         </div>
         <div className="actions">
           <button className="ghost" onClick={() => setShowHelp(true)}>Instructions</button>
-          <button className="ghost" onClick={async () => { await save(); logout(); }}>Log out</button>
+          <Button className="ghost" busy={pending === 'logout'} disabled={Boolean(pending)}
+            onClick={() => runAction('logout', async () => { await save(); logout(); })}>Log out</Button>
         </div>
       </header>
 
@@ -412,18 +419,21 @@ export default function Writer() {
           {error && <div className="error" role="alert">{error}</div>}
           <div className="dock">
             <div className="dock-inner">
-              <button onClick={() => goTo(unit.ord - 1)} disabled={unit.ord <= 1}>Previous</button>
+              <Button onClick={() => runAction('prev', () => goTo(unit.ord - 1))} busy={pending === 'prev'}
+                disabled={unit.ord <= 1 || Boolean(pending)}>Previous</Button>
               <span className="spacer" />
-              <button className="primary" onClick={saveAndNext}>Next</button>
+              <Button className="primary" onClick={() => runAction('next', saveAndNext)} busy={pending === 'next'}
+                disabled={Boolean(pending)}>Next</Button>
             </div>
           </div>
           <div className="jump">
             {me.next_ord && me.next_ord !== unit.ord && (
-              <button className="link" onClick={() => goTo(me.next_ord)}>Go to first unfinished item ({me.next_ord})</button>
+              <Button className="link" onClick={() => runAction('first', () => goTo(me.next_ord))} busy={pending === 'first'}
+                disabled={Boolean(pending)}>Go to first unfinished item ({me.next_ord})</Button>
             )}
-            <form onSubmit={(e) => { e.preventDefault(); goTo(Number(jump)); setJump(''); }}>
+            <form onSubmit={(e) => { e.preventDefault(); runAction('jump', () => goTo(Number(jump))); setJump(''); }}>
               <input value={jump} onChange={(e) => setJump(e.target.value.replace(/\D/g, ''))} placeholder="Item #" inputMode="numeric" />
-              <button>Go</button>
+              <Button busy={pending === 'jump'} disabled={Boolean(pending)}>Go</Button>
             </form>
           </div>
         </main>

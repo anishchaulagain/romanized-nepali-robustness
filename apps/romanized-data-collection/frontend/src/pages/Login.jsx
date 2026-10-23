@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, setToken } from '../api.js';
 import Brand from '../Brand.jsx';
+import { Button } from '../Button.jsx';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export default function Login() {
               autoComplete="current-password" required />
           </label>
           {error && <div className="error" role="alert">{error}</div>}
-          <button className="primary" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>
+          <Button className="primary" busy={busy}>{busy ? 'Logging in…' : 'Log in'}</Button>
         </form>
       </div>
     </div>

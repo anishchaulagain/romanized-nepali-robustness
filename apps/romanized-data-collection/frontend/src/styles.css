@@ -222,6 +222,15 @@ td.num { font-variant-numeric: tabular-nums; }
 .nav { display: flex; justify-content: flex-end; gap: .5rem; flex-wrap: wrap; margin: 1rem 0 0; }
 .nav.left { justify-content: flex-start; }
 
+/* Button spinner */
+.spinner {
+  display: inline-block; width: .95em; height: .95em; margin-right: .5em; vertical-align: -.12em;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite;
+}
+button[aria-busy='true'] { cursor: progress; }
+button[aria-busy='true']:disabled { opacity: .75; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* Toasts sit just above the action dock */
 .toast-region { position: fixed; left: 0; right: 0; bottom: 5rem; z-index: 30; display: flex; justify-content: center; pointer-events: none; padding: 0 16px; }
 .toast {
@@ -266,5 +275,6 @@ td.num { font-variant-numeric: tabular-nums; }
 }
 @media (prefers-reduced-motion: reduce) {
   .caret, .sk, .toast { animation: none; }
+  .spinner { animation-duration: 1.6s; }
   .progress-fill { transition: none; }
 }

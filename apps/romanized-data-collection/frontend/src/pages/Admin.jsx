@@ -5,6 +5,7 @@ import { useLogout } from '../hooks.js';
 import Brand from '../Brand.jsx';
 import { AdminSkeleton } from '../Skeleton.jsx';
 import Progress from '../Progress.jsx';
+import { AsyncButton, Button } from '../Button.jsx';
 
 const fmt = (d) => (d ? new Date(d).toLocaleString() : '—');
 
@@ -88,7 +89,7 @@ function Overview({ data, reload }) {
         <p className="muted">
           Email is {data.channels.email ? 'set up' : 'not set up'}, and the webhook is {data.channels.webhook ? 'set up' : 'not set up'}.
         </p>
-        <button onClick={testNotify}>Send test notification</button> {msg && <span className="muted">{msg}</span>}
+        <AsyncButton onClick={testNotify}>Send test notification</AsyncButton> {msg && <span className="muted">{msg}</span>}
         <ul className="log">
           {data.notifications.map((n, i) => (
             <li key={i}><span className="muted">{fmt(n.created_at)}</span> {n.message.split('\n')[0]}
@@ -136,9 +137,12 @@ function Writers({ data, reload }) {
   const [form, setForm] = useState({ username: '', password: '', display_name: '' });
   const [msg, setMsg] = useState('');
   const [creds, setCreds] = useState(null);
+  const [creating, setCreating] = useState(false);
 
   async function create(e) {
     e.preventDefault();
+    if (creating) return;
+    setCreating(true);
     try {
       const w = await api.post('/api/admin/users', form);
       setMsg('');
@@ -148,6 +152,8 @@ function Writers({ data, reload }) {
     } catch (err) {
       setCreds(null);
       setMsg(err.message);
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -177,7 +183,7 @@ function Writers({ data, reload }) {
           onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
         <label>Display name (private)<input value={form.display_name}
           onChange={(e) => setForm({ ...form, display_name: e.target.value })} /></label>
-        <button className="primary">Create writer</button>
+        <Button className="primary" busy={creating}>Create writer</Button>
         <p className="muted span">
           Each item is written by {data.writers_per_unit} people. When you add, disable or enable a writer, the items
           nobody has started are shared out again evenly. Work a writer has started stays with them. New writers
@@ -205,13 +211,12 @@ function Writers({ data, reload }) {
                 <td className="num">{w.active ? w.units : '—'}</td>
                 <td>{w.profile?.home_region || '—'}</td>
                 <td className="row-actions">
-                  <button onClick={() => {
-                    if (window.confirm(`Give ${w.username} a new temporary password? They will be logged out and `
-                      + 'must choose a new password at their next login.')) patch(w, { new_temp_password: true });
-                  }}>Reset password</button>
-                  <button onClick={() => patch(w, { active: !w.active }, `${w.username} ${w.active ? 'disabled' : 'enabled'}.`)}>
+                  <AsyncButton onClick={() => (window.confirm(`Give ${w.username} a new temporary password? They will `
+                    + 'be logged out and must choose a new password at their next login.')
+                    ? patch(w, { new_temp_password: true }) : undefined)}>Reset password</AsyncButton>
+                  <AsyncButton onClick={() => patch(w, { active: !w.active }, `${w.username} ${w.active ? 'disabled' : 'enabled'}.`)}>
                     {w.active ? 'Disable' : 'Enable'}
-                  </button>
+                  </AsyncButton>
                 </td>
               </tr>
             ))}
@@ -231,11 +236,14 @@ function Questions({ reload }) {
   const [offset, setOffset] = useState(0);
   const [open, setOpen] = useState(null);
   const [msg, setMsg] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [paging, setPaging] = useState(null); // 'newer' | 'older' while that page loads
   const LIMIT = 20;
 
   const load = useCallback(() => {
     api.get(`/api/admin/units?q=${encodeURIComponent(q)}&offset=${offset}&limit=${LIMIT}`).then(setList)
-      .catch((err) => setMsg(err.message));
+      .catch((err) => setMsg(err.message))
+      .finally(() => setPaging(null));
   }, [q, offset]);
   useEffect(load, [load]);
 
@@ -243,14 +251,18 @@ function Questions({ reload }) {
 
   async function create(e) {
     e.preventDefault();
+    if (adding) return;
+    setAdding(true);
     try {
       const r = await api.post('/api/admin/units', form);
-      setMsg(`Added ${r.unit_key}. It was added to the end of every writer's list.`);
+      setMsg(`Added ${r.unit_key}. It was added to the end of the lists of the writers with the least work.`);
       setForm({ ...form, passage: '', questions: [emptyQuestion()] });
       load();
       reload();
     } catch (err) {
       setMsg(err.message);
+    } finally {
+      setAdding(false);
     }
   }
 
@@ -302,7 +314,7 @@ function Questions({ reload }) {
         ))}
         <div className="nav left">
           <button type="button" onClick={() => setForm({ ...form, questions: [...form.questions, emptyQuestion()] })}>Add another question</button>
-          <button className="primary">Add item</button>
+          <Button className="primary" busy={adding}>Add item</Button>
         </div>
       </form>
       {msg && <div className="card notice" role="status">{msg}</div>}
@@ -321,7 +333,7 @@ function Questions({ reload }) {
                   <td>{u.category}</td>
                   <td className="dev">{u.segments[0]?.devanagari.slice(0, 60)}</td>
                   <td>{u.responses}</td>
-                  <td>{u.responses === 0 && <button className="danger" onClick={(e) => { e.stopPropagation(); remove(u); }}>Delete</button>}</td>
+                  <td>{u.responses === 0 && <AsyncButton className="danger" onClick={(e) => { e.stopPropagation(); return remove(u); }}>Delete</AsyncButton>}</td>
                 </tr>
                 {open === u.id && (
                   <tr><td colSpan={5}>
@@ -338,8 +350,10 @@ function Questions({ reload }) {
           </tbody>
         </table></div>
         <div className="nav left">
-          <button disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - LIMIT))}>Newer</button>
-          <button disabled={offset + LIMIT >= list.total} onClick={() => setOffset(offset + LIMIT)}>Older</button>
+          <Button disabled={offset === 0 || Boolean(paging)} busy={paging === 'newer'}
+            onClick={() => { setPaging('newer'); setOffset(Math.max(0, offset - LIMIT)); }}>Newer</Button>
+          <Button disabled={offset + LIMIT >= list.total || Boolean(paging)} busy={paging === 'older'}
+            onClick={() => { setPaging('older'); setOffset(offset + LIMIT); }}>Older</Button>
         </div>
       </div>
     </>
@@ -358,9 +372,9 @@ function Export({ data }) {
         {' '}One row per writer per box, with the Devanagari, the writer’s romanization, the existing romanization and the answer key.
       </p>
       <div className="nav left">
-        <button className="primary" onClick={() => get('/api/admin/export/responses?format=csv')}>Responses (CSV)</button>
-        <button onClick={() => get('/api/admin/export/responses?format=jsonl')}>Responses (JSONL)</button>
-        <button onClick={() => get('/api/admin/export/writers')}>Writer profiles (CSV)</button>
+        <AsyncButton className="primary" onClick={() => get('/api/admin/export/responses?format=csv')}>Responses (CSV)</AsyncButton>
+        <AsyncButton onClick={() => get('/api/admin/export/responses?format=jsonl')}>Responses (JSONL)</AsyncButton>
+        <AsyncButton onClick={() => get('/api/admin/export/writers')}>Writer profiles (CSV)</AsyncButton>
       </div>
       {msg && <div className="error">{msg}</div>}
     </div>
