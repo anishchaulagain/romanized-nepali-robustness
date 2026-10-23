@@ -119,6 +119,7 @@ legend { font-weight: 700; padding: 0 .35rem; }
 .unit-head h2 span { color: var(--slate); font-weight: 400; font-size: 1rem; }
 .status { font-size: .9rem; color: var(--ok); font-weight: 500; min-height: 1.4em; }
 .status.saving { color: var(--slate); }
+.status.bad { color: var(--crimson); }
 
 .segment { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-card); padding: 1rem 1.1rem .8rem; margin-bottom: .75rem; }
 .segment.passage { padding-top: 1.2rem; }
@@ -245,7 +246,6 @@ td.num { font-variant-numeric: tabular-nums; }
   .segment { padding: .85rem .85rem .7rem; }
   .dev { font-size: 1.2rem; }
   .dock-inner button { padding: .55rem .8rem; }
-  .dock-inner .save-only { display: none; }
   .summary > div { border-left: 0; border-top: 1px solid var(--line); }
   .summary > div:first-child { border-top: 0; }
 }

@@ -8,6 +8,8 @@ import { Toast, useToast } from '../Toast.jsx';
 
 const DEVANAGARI = /[ऀ-ॿ]/;
 const IDLE_MS = 60_000; // time without any interaction is not counted as active
+const AUTOSAVE_MS = 800; // save this long after the writer stops typing
+const RETRY_MS = 5_000; // retry a save that failed because of the network or the server
 
 const PROFILE_FIELDS = [
   ['home_region', 'Home district / region where you grew up', null],
@@ -32,7 +34,7 @@ function Instructions({ onClose }) {
           <li>Short forms you normally use are fine (for example छ as “xa” or “cha”).</li>
           <li>Do not use Google Translate, transliteration keyboards or tools, and do not ask anyone else. Pasting is turned off.</li>
           <li>Some items may look familiar. Just write them again normally; do not look back.</li>
-          <li>Your work is saved every time you leave a box or press Save. You can stop and continue later.</li>
+          <li>Your work saves automatically as you type. You can stop and continue later.</li>
           <li>If a word is unclear, write your best guess and add a note.</li>
         </ul>
         <div className="example">
@@ -100,6 +102,14 @@ function ProfileForm({ user, onSaved, onLogout }) {
   );
 }
 
+function SaveStatus({ status, dirty, invalid }) {
+  const [text, kind] = invalid ? ['Not saved: use English letters', 'bad']
+    : status === 'Offline. Retrying…' || status === 'Not saved' ? [status, 'bad']
+      : dirty || status === 'Saving…' ? ['Saving…', 'saving']
+        : [status, ''];
+  return <span className={`status ${kind}`} aria-live="polite">{text}</span>;
+}
+
 function SegLabel({ s }) {
   // Seed labels look like "Question", "Option B", "Passage", "Q2 Question", "Q2 Option B".
   const m = /^(?:Q(\d+) )?(Question|Option ([A-D]))$/.exec(s.label);
@@ -142,6 +152,7 @@ export default function Writer() {
   const pasteBlocked = useRef(0);
   const lastActivity = useRef(Date.now());
   const edits = useRef(0); // bumped on every edit, so a slow save never hides newer unsaved text
+  const [retryTick, setRetryTick] = useState(0);
 
   // Active-time counter: counts only while the tab is visible and the writer interacted recently.
   useEffect(() => {
@@ -183,6 +194,7 @@ export default function Writer() {
       setOpenNotes(Object.fromEntries(u.segments.map((s) => [s.id, Boolean(s.note)])));
       setDirty(false);
       setError('');
+      setStatus('');
       window.scrollTo(0, 0);
     }).catch((err) => setError(err.message));
   }, [ord]);
@@ -210,12 +222,16 @@ export default function Writer() {
       setMe((m) => ({ ...m, progress: res.progress, next_ord: res.next_ord }));
       if (edits.current === version) setDirty(false);
       setError('');
-      setStatus('Saved');
-      setTimeout(() => setStatus(''), 1500);
+      setStatus('All changes saved');
       return res;
     } catch (err) {
-      setStatus('');
-      setError(err.message);
+      if (!err.status || err.status >= 500) {
+        setStatus('Offline. Retrying…');
+        setTimeout(() => setRetryTick((n) => n + 1), RETRY_MS);
+      } else {
+        setStatus('Not saved');
+        setError(err.message);
+      }
       return false;
     }
   }, [unit, values, notes, dirty]);
@@ -227,6 +243,13 @@ export default function Writer() {
     saveQueue.current = run.catch(() => {});
     return run;
   }, [saveNow]);
+
+  // Autosave: a short pause after the last edit saves the item, like a shared document.
+  useEffect(() => {
+    if (!dirty || !unit) return undefined;
+    const timer = setTimeout(() => save(), AUTOSAVE_MS);
+    return () => clearTimeout(timer);
+  }, [dirty, unit, save, retryTick]);
 
   async function goTo(target) {
     const res = await save();
@@ -245,7 +268,7 @@ export default function Writer() {
     }
     // Always save here, so where to go next comes from the server and not from an older save's answer.
     const res = await save({ force: true });
-    if (res === false) return showToast('Not saved. See the message above the buttons.', 'error');
+    if (res === false) return showToast('This item could not be saved yet. See the message above the button.', 'error');
     const nextOrd = res.next_ord;
     const hasNext = unit.ord < unit.total_units;
     if (nextOrd == null && !(reviewing && hasNext)) {
@@ -255,12 +278,6 @@ export default function Writer() {
       setOrd(hasNext ? unit.ord + 1 : nextOrd);
       showToast(`Item ${unit.ord} saved`);
     }
-  }
-
-  async function saveHere() {
-    const res = await save({ force: true });
-    if (res === false) showToast('Not saved. See the message above the buttons.', 'error');
-    else showToast(`Item ${unit.ord} saved`);
   }
 
   function blockPaste(e) {
@@ -307,7 +324,8 @@ export default function Writer() {
         <main className="work">
           <div className="unit-head">
             <h2>Item {unit.ord} <span>of {unit.total_units}</span></h2>
-            <span className={`status ${status === 'Saving…' ? 'saving' : ''}`} aria-live="polite">{status}</span>
+            <SaveStatus status={status} dirty={dirty}
+              invalid={unit.segments.some((x) => DEVANAGARI.test(values[x.id] || ''))} />
           </div>
           {unit.segments.map((s) => {
             const invalid = DEVANAGARI.test(values[s.id] || '');
@@ -346,8 +364,7 @@ export default function Writer() {
             <div className="dock-inner">
               <button onClick={() => goTo(unit.ord - 1)} disabled={unit.ord <= 1}>Previous</button>
               <span className="spacer" />
-              <button className="save-only" onClick={saveHere}>Save</button>
-              <button className="primary" onClick={saveAndNext}>Save and next</button>
+              <button className="primary" onClick={saveAndNext}>Next</button>
             </div>
           </div>
           <div className="jump">
