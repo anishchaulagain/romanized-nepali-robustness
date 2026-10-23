@@ -55,7 +55,7 @@ async def lifespan(_app):
     yield
 
 
-app = FastAPI(title='Romanized Nepali data collection', lifespan=lifespan)
+app = FastAPI(title='Akshar: Romanized Nepali data collection', lifespan=lifespan)
 
 
 @app.exception_handler(404)
@@ -122,11 +122,11 @@ def check_completion(db: Session, user: User):
     user.completed_at = now()
     db.commit()
     name = f'{user.display_name or user.username} ({user.writer_code})'
-    notify.send(db, 'writer_completed', f'[Romanized Nepali] {name} finished',
+    notify.send(db, 'writer_completed', f'[Akshar] {name} finished',
                 f'{name} has completed all {p["total"]} segments.\nAdmin page: {config.APP_URL}/admin')
     writers = db.scalars(select(User).where(User.role == 'writer', User.active.is_(True))).all()
     if writers and all(w.completed_at for w in writers):
-        notify.send(db, 'all_completed', '[Romanized Nepali] All writers finished',
+        notify.send(db, 'all_completed', '[Akshar] All writers finished',
                     f'All {len(writers)} writers have completed their items. Download the dataset at '
                     f'{config.APP_URL}/admin')
 
@@ -494,5 +494,5 @@ def export_writers(_: User = Depends(admin_user), db: Session = Depends(get_sess
 def notify_test(_: User = Depends(admin_user), db: Session = Depends(get_session)):
     if not any(notify.channels().values()):
         raise HTTPException(400, 'No notification channel configured (set SMTP_* + NOTIFY_EMAIL or NOTIFY_WEBHOOK_URL)')
-    delivered = notify.send(db, 'test', '[Romanized Nepali] Test notification', 'Notifications are working.')
+    delivered = notify.send(db, 'test', '[Akshar] Test notification', 'Notifications are working.')
     return {'delivered': delivered}

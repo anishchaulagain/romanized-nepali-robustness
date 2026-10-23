@@ -1,4 +1,4 @@
-# Romanized Nepali data collection
+# Akshar: Romanized Nepali data collection
 
 A small web app in which native speakers independently type Devanagari Nepali items the way they would in
 chat. It produces the natural-romanization (R-nat) condition of the Paper 1 benchmark.
