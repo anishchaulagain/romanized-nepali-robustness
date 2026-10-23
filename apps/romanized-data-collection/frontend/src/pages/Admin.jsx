@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useLogout } from '../hooks.js';
 import Brand from '../Brand.jsx';
+import { AdminSkeleton } from '../Skeleton.jsx';
 
 const fmt = (d) => (d ? new Date(d).toLocaleString() : '—');
 
@@ -337,7 +338,7 @@ export default function Admin() {
         <div className="actions"><button className="ghost" onClick={logout}>Log out</button></div>
       </header>
       <main>
-        {!data ? <div className="center muted">{error || 'Loading…'}</div> : (
+        {!data ? (error ? <div className="error" role="alert">{error}</div> : <AdminSkeleton />) : (
           <>
             {tab === 'Overview' && <Overview data={data} reload={reload} />}
             {tab === 'Writers' && <Writers data={data} reload={reload} />}

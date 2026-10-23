@@ -4,6 +4,7 @@ import { api, getToken } from './api.js';
 import Login from './pages/Login.jsx';
 import Writer from './pages/Writer.jsx';
 import Admin from './pages/Admin.jsx';
+import { WriterSkeleton } from './Skeleton.jsx';
 
 function Home() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ function Home() {
       .then((me) => navigate(me.user.role === 'admin' ? '/admin' : '/write', { replace: true }))
       .catch(() => navigate('/login', { replace: true }));
   }, [navigate]);
-  return <div className="center muted">Loading…</div>;
+  return <WriterSkeleton />;
 }
 
 function RequireLogin({ children }) {

@@ -211,6 +211,17 @@ td.num { font-variant-numeric: tabular-nums; }
 .nav { display: flex; justify-content: flex-end; gap: .5rem; flex-wrap: wrap; margin: 1rem 0 0; }
 .nav.left { justify-content: flex-start; }
 
+/* Loading skeletons */
+.sk { display: block; border-radius: 6px; background: linear-gradient(90deg, #e2e7ee 25%, #eef1f5 50%, #e2e7ee 75%);
+  background-size: 200% 100%; animation: sk-shimmer 1.4s ease-in-out infinite; max-width: 100%; }
+.sk-gap { margin-top: .6rem; }
+.sk-row { margin-top: .9rem; }
+.sk-bubble { margin-top: .4rem; border-radius: var(--r-bubble); border-bottom-right-radius: 4px; }
+.topbar .sk { display: inline-block; }
+@keyframes sk-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.form-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+
 @media (max-width: 760px) {
   .login-wrap { grid-template-columns: 1fr; gap: 1.5rem; }
   .login-intro h1 { margin-top: .9rem; }
@@ -229,6 +240,6 @@ td.num { font-variant-numeric: tabular-nums; }
   .summary > div:first-child { border-top: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .caret { animation: none; }
+  .caret, .sk { animation: none; }
   .meter { transition: none; }
 }

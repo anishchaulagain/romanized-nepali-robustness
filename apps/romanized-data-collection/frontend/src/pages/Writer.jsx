@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useLogout } from '../hooks.js';
 import Brand, { Mark } from '../Brand.jsx';
+import { PageError, UnitSkeleton, WriterSkeleton } from '../Skeleton.jsx';
 
 const DEVANAGARI = /[ऀ-ॿ]/;
 const IDLE_MS = 60_000; // time without any interaction is not counted as active
@@ -49,7 +50,7 @@ function Instructions({ onClose }) {
   );
 }
 
-function ProfileForm({ user, onSaved }) {
+function ProfileForm({ user, onSaved, onLogout }) {
   const [profile, setProfile] = useState(user.profile || {});
   const [consent, setConsent] = useState(Boolean(user.consent));
   const [error, setError] = useState('');
@@ -68,7 +69,10 @@ function ProfileForm({ user, onSaved }) {
   return (
     <div className="center">
       <form className="card narrow" onSubmit={submit}>
-        <Brand sub="Romanized Nepali writing study" />
+        <div className="form-head">
+          <Brand sub="Romanized Nepali writing study" />
+          <button type="button" className="ghost" onClick={onLogout}>Log out</button>
+        </div>
         <h2 style={{ marginTop: '1.2rem' }}>About you</h2>
         <p className="muted">This helps us understand different writing styles. Your name is never published.</p>
         {PROFILE_FIELDS.map(([key, label, options]) => (
@@ -250,8 +254,11 @@ export default function Writer() {
     setError('Pasting is turned off. Please type the text yourself.');
   }
 
-  if (!me) return <div className="center muted">{error || 'Loading…'}</div>;
-  if (!me.user.consent) return <ProfileForm user={me.user} onSaved={(user) => { setMe({ ...me, user }); setShowHelp(true); }} />;
+  if (!me) return error ? <PageError message={error} /> : <WriterSkeleton />;
+  if (!me.user.consent) {
+    return <ProfileForm user={me.user} onLogout={logout}
+      onSaved={(user) => { setMe({ ...me, user }); setShowHelp(true); }} />;
+  }
 
   const { done, total } = me.progress;
   const pct = total ? Math.round((100 * done) / total) : 0;
@@ -279,7 +286,7 @@ export default function Writer() {
           <button onClick={() => { setReviewing(true); setOrd(1); }}>Review from the start</button>
         </div>
       ) : !unit ? (
-        <div className="center muted">{error || 'Loading…'}</div>
+        error ? <div className="error" role="alert">{error}</div> : <UnitSkeleton />
       ) : (
         <main className="work">
           <div className="unit-head">
