@@ -122,3 +122,25 @@ def test_full_flow():
                 headers=admin, json={'password': 'new-pass-123'})
         assert c.get('/api/me', headers=ram).status_code == 401
         auth(c, 'ram', 'new-pass-123')
+
+
+def test_concurrent_first_saves_do_not_fail():
+    """Leaving a box and clicking Save and next sends two saves of a new item at once; both must succeed."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    with TestClient(app) as c:
+        admin = auth(c, 'admin', 'admin-pass-123')
+        c.post('/api/admin/users', headers=admin, json={'username': 'racer', 'password': 'writer-pass-1', 'slot': 5})
+        w = auth(c, 'racer', 'writer-pass-1')
+        c.put('/api/me/profile', headers=w, json={'profile': {}, 'consent': True})
+        for ord_ in (1, 2, 3):
+            unit = c.get(f'/api/units/{ord_}', headers=w).json()
+            body = {'responses': [{'segment_id': s['id'], 'romanized': 'ek', 'note': ''} for s in unit['segments']],
+                    'active_ms': 10, 'paste_blocked': 0}
+            with ThreadPoolExecutor(4) as pool:
+                codes = list(pool.map(lambda _: c.put(f'/api/units/{ord_}', headers=w, json=body).status_code, range(4)))
+            assert codes == [200] * 4

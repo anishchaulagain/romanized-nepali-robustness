@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, setToken } from '../api.js';
+import Brand from '../Brand.jsx';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -26,22 +27,33 @@ export default function Login() {
 
   return (
     <div className="center">
-      <form className="card login" onSubmit={submit}>
-        <h1>Romanized Nepali Writing</h1>
-        <p className="muted">Log in with the username and password you were given.</p>
-        <label>
-          Username
-          <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username"
-            autoCapitalize="off" autoCorrect="off" spellCheck={false} required autoFocus />
-        </label>
-        <label>
-          Password
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password" required />
-        </label>
-        {error && <div className="error">{error}</div>}
-        <button className="primary" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>
-      </form>
+      <div className="login-wrap">
+        <section className="login-intro">
+          <Brand sub="Romanized Nepali writing study" />
+          <h1>Write Nepali the way you type it in chat.</h1>
+          <p>You will see Nepali sentences in Devanagari and type each one in English letters, in your own spelling.</p>
+          <div className="chat-demo" aria-hidden="true">
+            <div className="in">तिमी कहाँ छौ?</div>
+            <div className="out">timi kaha xau?<span className="caret" /></div>
+          </div>
+        </section>
+        <form className="card login-card" onSubmit={submit}>
+          <h2>Log in</h2>
+          <p className="muted">Use the username and password the research team sent you.</p>
+          <label>
+            Username
+            <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username"
+              autoCapitalize="off" autoCorrect="off" spellCheck={false} required autoFocus />
+          </label>
+          <label>
+            Password
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password" required />
+          </label>
+          {error && <div className="error" role="alert">{error}</div>}
+          <button className="primary" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>
+        </form>
+      </div>
     </div>
   );
 }
