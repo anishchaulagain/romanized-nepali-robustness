@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useLogout } from '../hooks.js';
+import Brand, { Mark } from '../Brand.jsx';
 
 const DEVANAGARI = /[ऀ-ॿ]/;
 const IDLE_MS = 60_000; // time without any interaction is not counted as active
@@ -33,10 +34,14 @@ function Instructions({ onClose }) {
           <li>If a word is unclear, write your best guess and add a note.</li>
         </ul>
         <div className="example">
-          <div className="dev">नेपालको राजधानी कुन हो?</div>
-          <div>Person 1: <code>nepal ko rajdhani kun ho?</code></div>
-          <div>Person 2: <code>Nepalko rajdhaani kun ho</code></div>
-          <div className="muted">Both are correct.</div>
+          <div className="chat-demo">
+            <div className="in">नेपालको राजधानी कुन हो?</div>
+            <div className="who">One person</div>
+            <div className="out">nepal ko rajdhani kun ho?</div>
+            <div className="who">Another person</div>
+            <div className="out alt">Nepalko rajdhaani kun ho</div>
+          </div>
+          <p className="muted" style={{ margin: '.6rem 0 0' }}>Both are right.</p>
         </div>
         <button className="primary" onClick={onClose}>Start writing</button>
       </div>
@@ -63,7 +68,8 @@ function ProfileForm({ user, onSaved }) {
   return (
     <div className="center">
       <form className="card narrow" onSubmit={submit}>
-        <h2>About you</h2>
+        <Brand sub="Romanized Nepali writing study" />
+        <h2 style={{ marginTop: '1.2rem' }}>About you</h2>
         <p className="muted">This helps us understand different writing styles. Your name is never published.</p>
         {PROFILE_FIELDS.map(([key, label, options]) => (
           <label key={key}>
@@ -82,14 +88,23 @@ function ProfileForm({ user, onSaved }) {
           <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
           I agree that my anonymous writing may be published in a research dataset.
         </label>
-        {error && <div className="error">{error}</div>}
-        <button className="primary">Continue</button>
+        {error && <div className="error" role="alert">{error}</div>}
+        <button className="primary">Save and continue</button>
       </form>
     </div>
   );
 }
 
+function SegLabel({ s }) {
+  // Seed labels look like "Question", "Option B", "Passage", "Q2 Question", "Q2 Option B".
+  const m = /^(?:Q(\d+) )?(Question|Option ([A-D]))$/.exec(s.label);
+  if (!m) return s.label;
+  const q = m[1] ? `Question ${m[1]}` : 'Question';
+  return m[3] ? <><span className="opt">{m[3]}</span>{m[1] ? `${q}, option` : 'Option'}</> : q;
+}
+
 function AutoTextarea({ value, onChange, invalid, rows = 1, ...rest }) {
+  const filled = Boolean((value || '').trim());
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
@@ -97,7 +112,7 @@ function AutoTextarea({ value, onChange, invalid, rows = 1, ...rest }) {
     el.style.height = `${el.scrollHeight + 2}px`;
   }, [value]);
   return (
-    <textarea ref={ref} rows={rows} value={value} onChange={onChange} className={invalid ? 'invalid' : ''}
+    <textarea ref={ref} rows={rows} value={value} onChange={onChange} className={`${invalid ? 'invalid' : ''} ${filled ? 'filled' : ''}`}
       autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false} data-gramm="false" {...rest} />
   );
 }
@@ -120,6 +135,7 @@ export default function Writer() {
   const activeMs = useRef(0);
   const pasteBlocked = useRef(0);
   const lastActivity = useRef(Date.now());
+  const edits = useRef(0); // bumped on every edit, so a slow save never hides newer unsaved text
 
   // Active-time counter: counts only while the tab is visible and the writer interacted recently.
   useEffect(() => {
@@ -165,24 +181,28 @@ export default function Writer() {
     }).catch((err) => setError(err.message));
   }, [ord]);
 
-  const save = useCallback(async () => {
+  const saveNow = useCallback(async ({ force = false } = {}) => {
     if (!unit) return true;
     if (unit.segments.some((s) => DEVANAGARI.test(values[s.id] || ''))) {
       setError('Please use English letters only. Remove the Devanagari text marked in red.');
       return false;
     }
-    if (!dirty && activeMs.current === 0) return true;
+    if (!force && !dirty && activeMs.current === 0) return true;
+    const version = edits.current;
+    const sentMs = Math.min(activeMs.current, 3_600_000);
+    const sentPastes = pasteBlocked.current;
     setStatus('Saving…');
     try {
       const res = await api.put(`/api/units/${unit.ord}`, {
         responses: unit.segments.map((s) => ({ segment_id: s.id, romanized: values[s.id] || '', note: notes[s.id] || '' })),
-        active_ms: Math.min(activeMs.current, 3_600_000),
-        paste_blocked: pasteBlocked.current,
+        active_ms: sentMs,
+        paste_blocked: sentPastes,
       });
-      activeMs.current = 0;
-      pasteBlocked.current = 0;
+      // Subtract only what this request reported: time and pastes counted meanwhile go with the next save.
+      activeMs.current = Math.max(0, activeMs.current - sentMs);
+      pasteBlocked.current = Math.max(0, pasteBlocked.current - sentPastes);
       setMe((m) => ({ ...m, progress: res.progress, next_ord: res.next_ord }));
-      setDirty(false);
+      if (edits.current === version) setDirty(false);
       setError('');
       setStatus('Saved');
       setTimeout(() => setStatus(''), 1500);
@@ -193,6 +213,14 @@ export default function Writer() {
       return false;
     }
   }, [unit, values, notes, dirty]);
+
+  // Saves run one at a time, in the order they were asked for, so a later save always carries the newer text.
+  const saveQueue = useRef(Promise.resolve());
+  const save = useCallback((opts) => {
+    const run = saveQueue.current.then(() => saveNow(opts));
+    saveQueue.current = run.catch(() => {});
+    return run;
+  }, [saveNow]);
 
   async function goTo(target) {
     const res = await save();
@@ -207,9 +235,10 @@ export default function Writer() {
       setError(`Please fill in all ${empty.length} empty box${empty.length > 1 ? 'es' : ''} before going on.`);
       return;
     }
-    const res = await save();
+    // Always save here, so where to go next comes from the server and not from an older save's answer.
+    const res = await save({ force: true });
     if (res === false) return;
-    const nextOrd = res === true ? me.next_ord : res.next_ord;
+    const nextOrd = res.next_ord;
     const hasNext = unit.ord < unit.total_units;
     if (nextOrd == null && !(reviewing && hasNext)) setOrd(null); // everything written: show the done screen
     else setOrd(hasNext ? unit.ord + 1 : nextOrd);
@@ -231,19 +260,19 @@ export default function Writer() {
     <div className="page">
       {showHelp && <Instructions onClose={() => { localStorage.setItem(`rn-help-${me.user.username}`, '1'); setShowHelp(false); }} />}
       <header className="topbar">
-        <div className="brand">Romanized Nepali Writing</div>
-        <div className="progress" title={`${done} of ${total} boxes`}>
-          <div className="bar"><div style={{ width: `${pct}%` }} /></div>
-          <span>{done} / {total}</span>
-        </div>
+        <Brand sub="Romanized Nepali writing study" />
+        <span className="count"><b>{done}</b> of {total} boxes written ({pct}%)</span>
         <div className="actions">
-          <button onClick={() => setShowHelp(true)}>Instructions</button>
-          <button onClick={async () => { await save(); logout(); }}>Log out</button>
+          <button className="ghost" onClick={() => setShowHelp(true)}>Instructions</button>
+          <button className="ghost" onClick={async () => { await save(); logout(); }}>Log out</button>
         </div>
+        <div className="meter" style={{ width: `${pct}%` }} role="progressbar" aria-valuenow={pct}
+          aria-valuemin={0} aria-valuemax={100} aria-label="Progress" />
       </header>
 
       {ord == null ? (
         <div className="card done">
+          <Mark />
           <h2>All done. Thank you!</h2>
           <p>You have written all {total} boxes. Your work has been saved and the research team has been notified.</p>
           <p className="muted">You can still go back and correct anything.</p>
@@ -254,41 +283,49 @@ export default function Writer() {
       ) : (
         <main className="work">
           <div className="unit-head">
-            <h2>Item {unit.ord} <span className="muted">of {unit.total_units}</span></h2>
-            <span className="status">{status}</span>
+            <h2>Item {unit.ord} <span>of {unit.total_units}</span></h2>
+            <span className={`status ${status === 'Saving…' ? 'saving' : ''}`} aria-live="polite">{status}</span>
           </div>
           {unit.segments.map((s) => {
             const invalid = DEVANAGARI.test(values[s.id] || '');
             return (
               <section key={s.id} className={`segment ${s.field === 'passage' ? 'passage' : ''}`}>
-                <div className="label">{s.label}</div>
-                <div className="dev">{s.devanagari}</div>
+                <div className="seg-label"><SegLabel s={s} /></div>
+                <div className="dev" lang="ne">{s.devanagari}</div>
+                <div className="bubble-row">
                 <AutoTextarea
+                  aria-label={`${s.label} in English letters`}
                   value={values[s.id] || ''}
                   rows={s.field === 'passage' ? 5 : 1}
                   invalid={invalid}
-                  placeholder="Type it here in English letters…"
-                  onChange={(e) => { setValues({ ...values, [s.id]: e.target.value }); setDirty(true); }}
+                  placeholder="Type it in English letters…"
+                  onChange={(e) => { setValues({ ...values, [s.id]: e.target.value }); edits.current += 1; setDirty(true); }}
                   onBlur={() => save()}
                   onPaste={blockPaste}
                   onDrop={blockPaste}
                 />
-                {invalid && <div className="error small">English letters only, please.</div>}
+                </div>
+                {invalid && <div className="error small">Use English letters only.</div>}
                 {openNotes[s.id] ? (
                   <input className="note" placeholder="Note (optional), e.g. a word you were unsure about"
                     value={notes[s.id] || ''} onBlur={() => save()}
-                    onChange={(e) => { setNotes({ ...notes, [s.id]: e.target.value }); setDirty(true); }} />
+                    onChange={(e) => { setNotes({ ...notes, [s.id]: e.target.value }); edits.current += 1; setDirty(true); }} />
                 ) : (
-                  <button className="link" onClick={() => setOpenNotes({ ...openNotes, [s.id]: true })}>+ add note</button>
+                  <div className="seg-foot">
+                    <button className="link" onClick={() => setOpenNotes({ ...openNotes, [s.id]: true })}>Add a note</button>
+                  </div>
                 )}
               </section>
             );
           })}
-          {error && <div className="error">{error}</div>}
-          <div className="nav">
-            <button onClick={() => goTo(unit.ord - 1)} disabled={unit.ord <= 1}>← Previous</button>
-            <button onClick={() => save()}>Save</button>
-            <button className="primary" onClick={saveAndNext}>Save &amp; next →</button>
+          {error && <div className="error" role="alert">{error}</div>}
+          <div className="dock">
+            <div className="dock-inner">
+              <button onClick={() => goTo(unit.ord - 1)} disabled={unit.ord <= 1}>Previous</button>
+              <span className="spacer" />
+              <button className="save-only" onClick={() => save({ force: true })}>Save</button>
+              <button className="primary" onClick={saveAndNext}>Save and next</button>
+            </div>
           </div>
           <div className="jump">
             {me.next_ord && me.next_ord !== unit.ord && (

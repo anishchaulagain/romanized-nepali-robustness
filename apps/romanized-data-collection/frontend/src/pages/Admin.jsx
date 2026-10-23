@@ -2,6 +2,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useLogout } from '../hooks.js';
+import Brand from '../Brand.jsx';
 
 const fmt = (d) => (d ? new Date(d).toLocaleString() : '—');
 
@@ -20,15 +21,30 @@ function Overview({ data, reload }) {
   const active = data.writers.filter((w) => w.active).length;
   return (
     <>
-      <div className="stats">
-        <div className="card stat"><b>{data.units}</b><span>items</span></div>
-        <div className="card stat"><b>{active} / {data.slots}</b><span>writer slots filled</span></div>
-        <div className="card stat"><b>{finished} / {active}</b><span>writers finished</span></div>
+      <div className="summary">
+        <div><b>{data.units}</b><span>items in the study</span></div>
+        <div><b>{active} of {data.slots}</b><span>writer slots filled</span></div>
+        <div><b>{finished} of {active}</b><span>writers finished</span></div>
+      </div>
+      <div className="slots">
+        {Array.from({ length: data.slots }, (_, i) => i + 1).map((slot) => {
+          const w = data.writers.find((x) => x.active && x.slot === slot);
+          if (!w) return <div key={slot} className="slot free"><div className="n">Slot {slot}</div><div>Free</div></div>;
+          const pct = w.total ? Math.round((100 * w.done) / w.total) : 0;
+          return (
+            <div key={slot} className="slot">
+              <div className="n">Slot {slot}, {w.writer_code}</div>
+              <div className="who">{w.display_name || w.username}</div>
+              {w.completed_at ? <div className="done-tag">Finished</div>
+                : <div><span className="bar"><div style={{ width: `${pct}%` }} /></span>{pct}%</div>}
+            </div>
+          );
+        })}
       </div>
       <div className="card">
         <h3>Writers</h3>
         {data.writers.length === 0 ? <p className="muted">No writers yet. Create them in the Writers tab.</p> : (
-          <table>
+          <div className="table-wrap"><table>
             <thead><tr><th>Code</th><th>Slot</th><th>Writer</th><th>Progress</th><th>Last seen</th><th>Finished</th></tr></thead>
             <tbody>
               {data.writers.map((w) => {
@@ -38,26 +54,26 @@ function Overview({ data, reload }) {
                     <td>{w.writer_code}</td>
                     <td>{w.slot ?? '—'}</td>
                     <td>{w.display_name || w.username}{!w.active && ' (disabled)'}</td>
-                    <td><div className="bar small"><div style={{ width: `${pct}%` }} /></div> {w.done}/{w.total}</td>
+                    <td className="num"><span className={`bar ${pct === 100 ? 'full' : ''}`}><div style={{ width: `${pct}%` }} /></span>{w.done} / {w.total}</td>
                     <td>{fmt(w.last_seen_at)}</td>
                     <td>{fmt(w.completed_at)}</td>
                   </tr>
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
       <div className="card">
         <h3>Notifications</h3>
         <p className="muted">
-          Email: {data.channels.email ? 'configured' : 'not configured'} · Webhook: {data.channels.webhook ? 'configured' : 'not configured'}
+          Email is {data.channels.email ? 'set up' : 'not set up'}, and the webhook is {data.channels.webhook ? 'set up' : 'not set up'}.
         </p>
         <button onClick={testNotify}>Send test notification</button> {msg && <span className="muted">{msg}</span>}
         <ul className="log">
           {data.notifications.map((n, i) => (
             <li key={i}><span className="muted">{fmt(n.created_at)}</span> {n.message.split('\n')[0]}
-              <span className="muted"> — {n.delivered || 'not delivered'}</span></li>
+              <span className="muted"> ({n.delivered || 'not delivered'})</span></li>
           ))}
         </ul>
       </div>
@@ -107,7 +123,7 @@ function Writers({ data, reload }) {
             <option value="">{data.free_slot ? `Next free (slot ${data.free_slot})` : 'All slots taken'}</option>
             {Array.from({ length: data.slots }, (_, i) => i + 1).map((s) => (
               <option key={s} value={s}>
-                Slot {s}{activeBySlot[s] ? ` — replaces ${activeBySlot[s].username}` : ' — free'}
+                Slot {s}{activeBySlot[s] ? ` (replaces ${activeBySlot[s].username})` : ' (free)'}
               </option>
             ))}
           </select>
@@ -118,10 +134,10 @@ function Writers({ data, reload }) {
           items. To replace a writer who dropped out, disable them and create the new writer in the same slot.
         </p>
       </form>
-      {msg && <div className="card notice">{msg}</div>}
+      {msg && <div className="card notice" role="status">{msg}</div>}
       <div className="card">
         <h3>All writers</h3>
-        <table>
+        <div className="table-wrap"><table>
           <thead><tr><th>Code</th><th>Slot</th><th>Username</th><th>Name</th><th>Region</th><th></th></tr></thead>
           <tbody>
             {data.writers.map((w) => (
@@ -143,7 +159,7 @@ function Writers({ data, reload }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </>
   );
@@ -228,17 +244,17 @@ function Questions({ reload }) {
           </fieldset>
         ))}
         <div className="nav left">
-          <button type="button" onClick={() => setForm({ ...form, questions: [...form.questions, emptyQuestion()] })}>+ Another question</button>
+          <button type="button" onClick={() => setForm({ ...form, questions: [...form.questions, emptyQuestion()] })}>Add another question</button>
           <button className="primary">Add item</button>
         </div>
       </form>
-      {msg && <div className="card notice">{msg}</div>}
+      {msg && <div className="card notice" role="status">{msg}</div>}
       <div className="card">
         <div className="list-head">
           <h3>Items ({list.total})</h3>
           <input placeholder="Search text, key or category" value={q} onChange={(e) => { setQ(e.target.value); setOffset(0); }} />
         </div>
-        <table>
+        <div className="table-wrap"><table>
           <thead><tr><th>Key</th><th>Category</th><th>First line</th><th>Responses</th><th></th></tr></thead>
           <tbody>
             {list.units.map((u) => (
@@ -248,7 +264,7 @@ function Questions({ reload }) {
                   <td>{u.category}</td>
                   <td className="dev">{u.segments[0]?.devanagari.slice(0, 60)}</td>
                   <td>{u.responses}</td>
-                  <td>{u.responses === 0 && <button onClick={(e) => { e.stopPropagation(); remove(u); }}>Delete</button>}</td>
+                  <td>{u.responses === 0 && <button className="danger" onClick={(e) => { e.stopPropagation(); remove(u); }}>Delete</button>}</td>
                 </tr>
                 {open === u.id && (
                   <tr><td colSpan={5}>
@@ -263,10 +279,10 @@ function Questions({ reload }) {
               </Fragment>
             ))}
           </tbody>
-        </table>
+        </table></div>
         <div className="nav left">
-          <button disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - LIMIT))}>← Newer</button>
-          <button disabled={offset + LIMIT >= list.total} onClick={() => setOffset(offset + LIMIT)}>Older →</button>
+          <button disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - LIMIT))}>Newer</button>
+          <button disabled={offset + LIMIT >= list.total} onClick={() => setOffset(offset + LIMIT)}>Older</button>
         </div>
       </div>
     </>
@@ -314,11 +330,11 @@ export default function Admin() {
   return (
     <div className="page wide">
       <header className="topbar">
-        <div className="brand">Admin · Romanized Nepali</div>
+        <Brand sub="Study admin" />
         <nav className="tabs">
           {TABS.map((t) => <button key={t} className={t === tab ? 'active' : ''} onClick={() => setTab(t)}>{t}</button>)}
         </nav>
-        <div className="actions"><button onClick={logout}>Log out</button></div>
+        <div className="actions"><button className="ghost" onClick={logout}>Log out</button></div>
       </header>
       <main>
         {!data ? <div className="center muted">{error || 'Loading…'}</div> : (

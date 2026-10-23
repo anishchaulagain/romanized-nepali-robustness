@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response as HttpResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from . import config, notify
@@ -233,27 +234,40 @@ def save_unit(ord_: int, body: UnitIn, user: User = Depends(writer_user), db: Se
             raise HTTPException(400, 'Segment does not belong to this item')
         if DEVANAGARI.search(r.romanized):
             raise HTTPException(422, 'Please write in English letters only (no Devanagari).')
-    for r in body.responses:
-        text = r.romanized.strip()
-        existing = db.get(Response, (user.id, r.segment_id))
-        if not text:
-            if existing:
-                db.delete(existing)
-            continue
-        if existing is None:
-            db.add(Response(user_id=user.id, segment_id=r.segment_id, romanized=text, note=r.note.strip() or None))
-        elif existing.romanized != text or (existing.note or '') != r.note.strip():
-            existing.romanized, existing.note = text, r.note.strip() or None
-            existing.edit_count += 1
-            existing.updated_at = now()
-    act = db.get(UnitActivity, (user.id, a.unit_id)) or UnitActivity(user_id=user.id, unit_id=a.unit_id,
-                                                                    active_ms=0, paste_blocked=0)
-    act.active_ms += body.active_ms
-    act.paste_blocked += body.paste_blocked
-    db.add(act)
-    if any(not r.romanized.strip() for r in body.responses) and user.completed_at:
-        user.completed_at = None  # a cleared answer reopens the task
-    db.commit()
+
+    def apply():
+        for r in body.responses:
+            text = r.romanized.strip()
+            existing = db.get(Response, (user.id, r.segment_id))
+            if not text:
+                if existing:
+                    db.delete(existing)
+                continue
+            if existing is None:
+                db.add(Response(user_id=user.id, segment_id=r.segment_id, romanized=text, note=r.note.strip() or None))
+            elif existing.romanized != text or (existing.note or '') != r.note.strip():
+                existing.romanized, existing.note = text, r.note.strip() or None
+                existing.edit_count += 1
+                existing.updated_at = now()
+        act = db.get(UnitActivity, (user.id, a.unit_id)) or UnitActivity(user_id=user.id, unit_id=a.unit_id,
+                                                                        active_ms=0, paste_blocked=0)
+        act.active_ms += body.active_ms
+        act.paste_blocked += body.paste_blocked
+        db.add(act)
+        if any(not r.romanized.strip() for r in body.responses) and user.completed_at:
+            user.completed_at = None  # a cleared answer reopens the task
+
+    # Two saves of the same item can arrive together (leaving a box, then clicking Save and next). Both may try
+    # to insert the same new rows; the loser rolls back and applies again, now updating the winner's rows.
+    for attempt in range(3):
+        try:
+            apply()
+            db.commit()
+            break
+        except IntegrityError:
+            db.rollback()
+            if attempt == 2:
+                raise HTTPException(409, 'This item was being saved twice at once. Please press Save again.')
     check_completion(db, user)
     return {'progress': progress(db, user.id), 'next_ord': next_unfinished(db, user.id)}
 
