@@ -41,7 +41,7 @@ def mcnemar_exact(b, c):
 
 def load():
     rows = [json.loads(l) for p in sorted((ROOT / 'results').glob('*.jsonl')) for l in open(p, encoding='utf-8')]
-    rows = [r for r in rows if r.get('pred') is not None]
+    # A question with no answer (e.g. the model reasoned in a loop until its output limit) counts as wrong.
     table = defaultdict(lambda: defaultdict(dict))  # model -> item -> condition -> row (R-nat: first writer)
     for r in rows:
         table[r['model']][r['item_id']].setdefault(r['condition'], r)
@@ -66,6 +66,21 @@ def accuracy_section(table):
     print(f"{'ALL MODELS (pooled)':<24}{'':>4}" + ''.join(
         f'{100 * k / n:>16.1f}' if n else f'{"-":>16}' for k, n in pooled.values()))
     print('   chance level: 25%\n')
+
+
+def no_answer_section(rows):
+    missing = [r for r in rows if r.get('pred') is None]
+    if not missing:
+        return
+    print('No answer given (counted as wrong): % of questions per condition')
+    print(f"{'model':<24}" + ''.join(f'{c:>9}' for c in CONDS))
+    for model in sorted({r['model'] for r in missing}):
+        cells = []
+        for c in CONDS:
+            rs = [r for r in rows if r['model'] == model and r['condition'] == c]
+            cells.append(100 * sum(r.get('pred') is None for r in rs) / len(rs) if rs else float('nan'))
+        print(f'{model:<24}' + ''.join(f'{x:>9.0f}' for x in cells))
+    print()
 
 
 def contrast_section(table):
@@ -162,6 +177,7 @@ def main():
     args = ap.parse_args()
     rows, table = load()
     accuracy_section(table)
+    no_answer_section(rows)
     contrast_section(table)
     consistency_section(table)
     calibration_section(rows)

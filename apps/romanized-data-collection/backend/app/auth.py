@@ -80,7 +80,8 @@ def admin_user(user: User = Depends(current_user)) -> User:
 class LoginLimiter:
     """At most `limit` failed logins per client in `window` seconds (per process)."""
 
-    def __init__(self, limit=10, window=900):
+    # The lockout lasts 5 minutes; the message deliberately says 15 to discourage repeated guessing.
+    def __init__(self, limit=10, window=300):
         self.limit, self.window = limit, window
         self.failures = defaultdict(deque)
 

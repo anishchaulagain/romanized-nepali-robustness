@@ -104,9 +104,11 @@ def ask(provider, model, extra, prompt, env):
     with urllib.request.urlopen(req, timeout=120) as r:
         d = json.loads(r.read())
     if provider == 'gemini':
-        parts = d.get('candidates', [{}])[0].get('content', {}).get('parts', [])
-        return ''.join(p.get('text', '') for p in parts if not p.get('thought'))
-    return d['choices'][0]['message'].get('content') or ''
+        cand = d.get('candidates', [{}])[0]
+        parts = cand.get('content', {}).get('parts', [])
+        return ''.join(p.get('text', '') for p in parts if not p.get('thought')), cand.get('finishReason', '')
+    choice = d['choices'][0]
+    return choice['message'].get('content') or '', choice.get('finish_reason', '')
 
 
 def run(name, todo, env):
@@ -119,13 +121,16 @@ def run(name, todo, env):
     last = 0.0
     with open(out_path, 'a', encoding='utf-8') as f:
         for i, p in enumerate(todo, 1):
+            finish = ''
             for attempt in range(6):
                 time.sleep(max(0.0, gap - (time.time() - last)))
                 last = time.time()
                 try:
-                    text = ask(provider, model, extra, p['prompt'], env)
-                    if not text.strip() and attempt < 2:
-                        continue  # the API occasionally returns an empty answer: ask again
+                    text, finish = ask(provider, model, extra, p['prompt'], env)
+                    # An empty reply is asked again, unless the model used up its output limit (for example
+                    # reasoning in a loop): that is its real behaviour and is scored as no answer.
+                    if not text.strip() and attempt < 2 and str(finish).upper() not in ('MAX_TOKENS', 'LENGTH'):
+                        continue
                     break
                 except urllib.error.HTTPError as e:
                     if e.code in (429, 500, 502, 503, 504) and attempt < 5:
@@ -136,16 +141,16 @@ def run(name, todo, env):
                     if e.code == 429:
                         print('  daily quota reached; run again later to continue')
                         return
-                    text = f'<HTTP {e.code}> {e.read()[:200].decode(errors="replace")}'
+                    text, finish = f'<HTTP {e.code}> {e.read()[:200].decode(errors="replace")}', 'error'
                     break
                 except Exception as e:  # noqa: BLE001 - network hiccup: retry
                     if attempt < 5:
                         time.sleep(5 * 2 ** attempt)
                         continue
-                    text = f'<error> {e}'
+                    text, finish = f'<error> {e}', 'error'
             pred = parse_letter(text)
             rec = {k: p[k] for k in ('key', 'item_id', 'source', 'category', 'condition', 'writer', 'answer')}
-            rec.update({'model': name, 'model_id': model, 'output': text[:2000], 'pred': pred,
+            rec.update({'model': name, 'model_id': model, 'output': text[:2000], 'pred': pred, 'finish': finish,
                         'correct': pred == p['answer'], 'time': time.strftime('%Y-%m-%dT%H:%M:%S')})
             f.write(json.dumps(rec, ensure_ascii=False) + '\n')
             f.flush()
