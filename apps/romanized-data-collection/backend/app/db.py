@@ -69,6 +69,8 @@ class Unit(Base):
     category: Mapped[str] = mapped_column(String(60))
     repeat_of: Mapped[str | None] = mapped_column(String(120))  # unit_key of the original, for hidden repeats
     writer_slots: Mapped[list | None] = mapped_column(JSON)  # slots that write this unit; None = every writer
+    # Left out of the current sample (app.select_subset): not given to writers, but kept so the sample can grow.
+    retired: Mapped[bool | None] = mapped_column(Boolean, default=False)
     created_by: Mapped[int | None] = mapped_column(ForeignKey('users.id'))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
@@ -141,7 +143,7 @@ def add_missing_columns():
     """create_all() does not alter existing tables; add columns introduced after the first deploy."""
     insp = inspect(engine)
     added = {'users': {'slot': 'INTEGER', 'temp_password': 'VARCHAR(200)', 'must_change_password': 'BOOLEAN'},
-             'units': {'writer_slots': 'JSON'}}
+             'units': {'writer_slots': 'JSON', 'retired': 'BOOLEAN'}}
     with engine.begin() as conn:
         for table, cols in added.items():
             have = {c['name'] for c in insp.get_columns(table)}

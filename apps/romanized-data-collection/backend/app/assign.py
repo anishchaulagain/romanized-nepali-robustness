@@ -83,6 +83,11 @@ def rebalance(db: Session) -> dict:
     base.sort(key=lambda u: u.id not in started)
     for u in base:
         keep = {w for w in active if answered.get((w, u.id))}
+        if u.retired:  # out of the sample: only writers who already started it keep it
+            plan[u.id] = keep
+            for w in keep:
+                load[w] += size.get(u.id, 0)
+            continue
         done_elsewhere = sum(1 for (w, unit) in inactive_complete if unit == u.id)
         take(u.id, keep, max(0, k - done_elsewhere - len(keep)))
         plan[u.id] = keep
@@ -90,7 +95,8 @@ def rebalance(db: Session) -> dict:
     by_key = {u.unit_key: u.id for u in units}
     for u in units:
         if u.repeat_of:  # a hidden repeat goes to the writers of its original
-            chosen = (plan.get(by_key.get(u.repeat_of), set()) | {w for w in active if answered.get((w, u.id))})
+            started_it = {w for w in active if answered.get((w, u.id))}
+            chosen = started_it if u.retired else plan.get(by_key.get(u.repeat_of), set()) | started_it
             plan[u.id] = chosen
             for w in chosen:
                 load[w] += size.get(u.id, 0)

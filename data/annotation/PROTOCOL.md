@@ -15,25 +15,22 @@ them only need the workbook's Instructions sheet.
 Regenerate with `python scripts/prepare_annotation.py` (fixed seed, so it produces the same sample).
 Regenerating after sheets have been sent is safe only if nothing in the script changed.
 
-## Design: 600 questions, 3 writers per item, any number of writers
+## Design: 241 questions, 3 writers, every writer writes every item
 
-- NeCCo: 75 items × 6 categories = 450 items (question + 4 options each)
-- Belebele: 82 passages with all 150 of their questions
-- The app shares the units among the active writers so that every unit is written by exactly 3 of them, the
-  work per writer is even, and pairs of writers overlap evenly. When writers join or leave, units nobody has
-  started are shared out again.
-- 20 NeCCo units are repeated later under a new number, to the same writers as the original.
-- Per writer with 4 writers: about 2,400 boxes, roughly 12 hours of typing (every pair shares about 265 units).
-  With 6 writers: about 1,600 boxes, 8–9 hours (every pair shares about 105 units).
+- NeCCo: 30 items × 6 categories = 180 items (question + 4 options each)
+- Belebele: 34 passages with all 61 of their questions
+- 20 NeCCo units are repeated later under a new number (self-consistency).
+- Per writer: about 1,330 boxes and 7,000 Devanagari words, roughly 5–6 hours of typing.
+- Chosen with a fixed seed from a pool of 600 questions (`backend/seed/subset.json`); it can be enlarged later.
 
-Why this size: 600 questions lets a paired difference of about 5 accuracy points be detected (McNemar,
-α = 0.05, power 0.8, assuming 20% of items flip between conditions); 353 questions would detect only about
-6.6 points. More writers make writer effects easier to estimate rather than attribute to a few individuals;
-six or more is the target, and four is workable.
+Why this size: with the pilot's discordance rates, a 10-point paired gap between Devanagari and natural romanization
+is detectable for a single model (McNemar, α = 0.05, power 0.8), and a ~3-point gap between tool and natural
+romanization when pooling models and writers. Three writers on every item give a fully crossed design for
+measuring how much answers change between writers.
 
 ## Choosing writers
 
-- Six people who **regularly type Nepali in English letters** in chat, ideally from different regions
+- Three (or more) people who **regularly type Nepali in English letters** in chat, ideally from different regions
   (e.g. Kathmandu Valley, eastern hills, western hills, Terai) and a mix of age groups.
 - Not linguists or NLP people, and not people who have seen this project's romanized data.
 - They must not compare notes with each other until all are done.

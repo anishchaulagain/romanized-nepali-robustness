@@ -329,7 +329,7 @@ function Questions({ reload }) {
             {list.units.map((u) => (
               <Fragment key={u.id}>
                 <tr className="clickable" onClick={() => setOpen(open === u.id ? null : u.id)}>
-                  <td>{u.unit_key}{u.repeat_of && <span className="tag">repeat</span>}</td>
+                  <td>{u.unit_key}{u.repeat_of && <span className="tag">repeat</span>}{u.retired && <span className="tag muted-tag">not in sample</span>}</td>
                   <td>{u.category}</td>
                   <td className="dev">{u.segments[0]?.devanagari.slice(0, 60)}</td>
                   <td>{u.responses}</td>

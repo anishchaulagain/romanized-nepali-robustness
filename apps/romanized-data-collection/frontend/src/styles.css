@@ -278,3 +278,4 @@ button[aria-busy='true']:disabled { opacity: .75; }
   .spinner { animation-duration: 1.6s; }
   .progress-fill { transition: none; }
 }
+.tag.muted-tag { background: var(--mist); color: var(--slate); }
