@@ -129,11 +129,13 @@ def short_units(db: Session) -> int:
     """Units that fewer active writers are assigned to than the design asks for (0 when the work is fully shared)."""
     n_active = (select(func.count(User.id)).where(User.role == 'writer', User.active.is_(True))).scalar_subquery()
     per_unit = (select(Assignment.unit_id, func.count().label('n')).join(User, User.id == Assignment.user_id)
-                .where(User.active.is_(True)).group_by(Assignment.unit_id).subquery())
+                .join(Unit, Unit.id == Assignment.unit_id)
+                .where(User.active.is_(True), Unit.retired.isnot(True)).group_by(Assignment.unit_id).subquery())
     need = func.min(config.WRITERS_PER_UNIT, n_active) if engine.dialect.name == 'sqlite' \
         else func.least(config.WRITERS_PER_UNIT, n_active)
     covered = select(func.count()).select_from(per_unit).where(per_unit.c.n >= need).scalar_subquery()
-    active, total, ok = db.execute(select(n_active, select(func.count(Unit.id)).scalar_subquery(), covered)).one()
+    in_sample = select(func.count(Unit.id)).where(Unit.retired.isnot(True)).scalar_subquery()
+    active, total, ok = db.execute(select(n_active, in_sample, covered)).one()
     return 0 if not active else (total or 0) - (ok or 0)
 
 
@@ -338,8 +340,10 @@ def overview(_: User = Depends(admin_user), db: Session = Depends(get_session)):
     writers = db.scalars(select(User).where(User.role == 'writer').order_by(User.id)).all()
     stats = all_progress(db)
     empty = {'done': 0, 'total': 0, 'units': 0}
-    n_units, n_segments = db.execute(select(select(func.count(Unit.id)).scalar_subquery(),
-                                            select(func.count(Segment.id)).scalar_subquery())).one()
+    n_units, n_segments = db.execute(select(
+        select(func.count(Unit.id)).where(Unit.retired.isnot(True)).scalar_subquery(),
+        select(func.count(Segment.id)).join(Unit, Unit.id == Segment.unit_id)
+        .where(Unit.retired.isnot(True)).scalar_subquery())).one()
     return {
         'writers': [{**user_out(w), **stats.get(w.id, empty), 'temp_password': w.temp_password} for w in writers],
         'units': n_units,
@@ -424,7 +428,7 @@ def list_units(q: str = '', offset: int = 0, limit: int = 20, _: User = Depends(
     for u in units:
         segs = by_unit.get(u.id, [])
         out.append({'id': u.id, 'unit_key': u.unit_key, 'source': u.source, 'category': u.category,
-                    'repeat_of': u.repeat_of, 'responses': counts.get(u.id, 0),
+                    'repeat_of': u.repeat_of, 'retired': bool(u.retired), 'responses': counts.get(u.id, 0),
                     'segments': [{'label': s.label, 'devanagari': s.devanagari, 'r_std': s.r_std, 'answer': s.answer}
                                  for s in segs]})
     return {'total': total, 'units': out}
