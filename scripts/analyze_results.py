@@ -13,6 +13,7 @@ Usage: python scripts/analyze_results.py [--tokenizers Qwen/Qwen2.5-7B-Instruct 
 import argparse
 import json
 import math
+from itertools import combinations
 from collections import defaultdict
 from pathlib import Path
 
@@ -39,8 +40,9 @@ def mcnemar_exact(b, c):
     return min(1.0, 2 * tail)
 
 
-def load():
+def load(exclude_writers=()):
     rows = [json.loads(l) for p in sorted((ROOT / 'results').glob('*.jsonl')) for l in open(p, encoding='utf-8')]
+    rows = [r for r in rows if not (r['condition'] == 'R_nat' and r.get('writer') in exclude_writers)]
     # A question with no answer (e.g. the model reasoned in a loop until its output limit) counts as wrong.
     table = defaultdict(lambda: defaultdict(dict))  # model -> item -> condition -> row (R-nat: first writer)
     for r in rows:
@@ -149,6 +151,47 @@ def source_section(table):
     print()
 
 
+def writer_section(rows):
+    """H5: accuracy per writer; H2: does the same question, typed by two people, get the same answer?"""
+    nat = [r for r in rows if r['condition'] == 'R_nat']
+    if len({r['writer'] for r in nat}) < 2:
+        return
+    other = {(r['model'], r['item_id'], r['condition']): r for r in rows if r['condition'] in ('D', 'R_tool')}
+    print("7. Writers (pooled over models): accuracy % on each writer's questions, paired with D and R-tool")
+    print(f"{'writer':<8}{'versions':>9}{'D':>7}{'R-tool':>8}{'R-nat':>8}{'R-tool -> R-nat':>17}{'p':>8}")
+    for w in sorted({r['writer'] for r in nat}):
+        trip = [(other.get((r['model'], r['item_id'], 'D')), other.get((r['model'], r['item_id'], 'R_tool')), r)
+                for r in nat if r['writer'] == w]
+        trip = [t for t in trip if t[0] and t[1]]
+        if not trip:
+            continue
+        d, t, n = ([x[i]['correct'] for x in trip] for i in range(3))
+        rw = sum(a and not b for a, b in zip(t, n))
+        wr = sum(b and not a for a, b in zip(t, n))
+        print(f'{w:<8}{len(trip):>9}{100 * sum(d) / len(d):>7.0f}{100 * sum(t) / len(t):>8.0f}{100 * sum(n) / len(n):>8.0f}'
+              f'{100 * (sum(n) - sum(t)) / len(n):>+16.1f}{mcnemar_exact(rw, wr):>8.3f}')
+
+    by = defaultdict(dict)  # (model, item) -> writer -> row
+    for r in nat:
+        by[(r['model'], r['item_id'])][r['writer']] = r
+    print("\n   Same question typed by two different writers: how often does the model's answer differ?")
+    print(f"   {'model':<24}{'pairs':>6}{'different answer':>18}{'one right, one wrong':>22}{'R-tool vs writer':>18}")
+    for model in sorted({r['model'] for r in nat}):
+        pairs = [(a, b, v) for (m, item), v in by.items() if m == model
+                 for a, b in combinations(sorted(v), 2)]
+        if not pairs:
+            continue
+        diff = sum(v[a]['pred'] != v[b]['pred'] for a, b, v in pairs)
+        split = sum(v[a]['correct'] != v[b]['correct'] for a, b, v in pairs)
+        # reference on the same questions: R-tool against each writer's version
+        ref = [(other[(model, r['item_id'], 'R_tool')]['pred'], r['pred']) for (m, item), v in by.items()
+               if m == model and len(v) > 1 for r in v.values() if (model, item, 'R_tool') in other]
+        ref_diff = 100 * sum(x != y for x, y in ref) / len(ref) if ref else float('nan')
+        print(f'   {model:<24}{len(pairs):>6}{100 * diff / len(pairs):>17.0f}%{100 * split / len(pairs):>21.0f}%'
+              f'{ref_diff:>17.0f}%')
+    print()
+
+
 def tokenizer_section(names):
     if not names:
         return
@@ -174,14 +217,17 @@ def tokenizer_section(names):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--tokenizers', nargs='*', default=[])
+    ap.add_argument('--exclude-writers', nargs='*', default=['W1', 'W2'],
+                    help='writer codes left out of R-nat (default: the two early test accounts)')
     args = ap.parse_args()
-    rows, table = load()
+    rows, table = load(set(args.exclude_writers))
     accuracy_section(table)
     no_answer_section(rows)
     contrast_section(table)
     consistency_section(table)
     calibration_section(rows)
     source_section(table)
+    writer_section(rows)
     tokenizer_section(args.tokenizers)
 
 

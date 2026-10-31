@@ -78,8 +78,9 @@ def wording_match(a, b):
 
 def flags(df):
     out = []
-    dev_words = df.devanagari.str.split().str.len()
-    rom_words = df.romanized.fillna('').str.split().str.len()
+    words = r'[\s/]+'  # "didi/baini" is two words, like "दिदि / बैनी"
+    dev_words = df.devanagari.str.strip().str.split(words).str.len()
+    rom_words = df.romanized.fillna('').str.strip().str.split(words).str.len()
     ratio = rom_words / dev_words
     for i, r in df.iterrows():
         why = []
@@ -153,7 +154,11 @@ def main():
     print(f'{len(df)} written boxes from {df.writer_code.nunique()} writers\n')
 
     fl = flags(df)
-    flagged = {(f.writer_code, f.unit_key, f.field) for f in fl.itertuples() if f.field != '(whole item)'} if len(fl) else set()
+    # Only boxes that are unusable (Devanagari typed, words missing or added) keep a question out of the evaluation;
+    # "identical to the existing romanization" is a note, since short phrases are often spelled the same way.
+    unusable = ('Devanagari', 'word count')
+    flagged = {(f.writer_code, f.unit_key, f.field) for f in fl.itertuples()
+               if f.field != '(whole item)' and any(u in f.why for u in unusable)} if len(fl) else set()
 
     # Coverage
     items = eval_items(df, flagged)

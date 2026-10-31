@@ -38,3 +38,6 @@ desktop.ini
 # Editors
 .vscode/
 .idea/
+
+# Public Belebele files for the multi-language check; re-downloadable (scripts/belebele_romanization_check.py)
+data/raw/belebele_romanized/
