@@ -32,12 +32,20 @@ MODELS = {
     'gemma-4-26b-a4b': ('gemini', 'gemma-4-26b-a4b-it', {'maxOutputTokens': 4096}),  # thinks before answering
     'gemini-3.5-flash': ('gemini', 'gemini-3.5-flash', {'thinkingConfig': {'thinkingLevel': 'low'}}),
     'gemini-3.1-flash-lite': ('gemini', 'gemini-3.1-flash-lite', {}),
+    # Paid (OpenAI): about $0.10 / $0.50 per million tokens, a few cents for a full run. Low reasoning effort.
+    'gpt-6-luna': ('openai', 'gpt-6-luna', {'reasoning_effort': 'low'}),
+    # Reasoning model (550B MoE), on NVIDIA's free API (build.nvidia.com key); low reasoning effort as for gpt-oss.
+    # Its first answers came from the same model on OpenRouter's free tier (see model_id in the results).
+    'nemotron-3-ultra': ('nvidia', 'nvidia/nemotron-3-ultra-550b-a55b',
+                         {'max_tokens': 4096, 'reasoning_effort': 'low'}),
 }
 PROVIDERS = {  # endpoint, key name, seconds between calls (free tier)
     'mistral': ('https://api.mistral.ai/v1/chat/completions', 'MISTRAL_API_KEY', 1.2),
     'groq': ('https://api.groq.com/openai/v1/chat/completions', 'GROQ_API_KEY', 3.0),
     'gemini': ('https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent', 'GEMINI_API_KEY', 6.0),
-    'openrouter': ('https://openrouter.ai/api/v1/chat/completions', 'OPENROUTER_API_KEY', 1.0),
+    'openrouter': ('https://openrouter.ai/api/v1/chat/completions', 'OPENROUTER_API_KEY', 3.2),  # free: 20/min
+    'nvidia': ('https://integrate.api.nvidia.com/v1/chat/completions', 'NVIDIA_API_KEY', 1.6),   # free: ~40/min
+    'openai': ('https://api.openai.com/v1/chat/completions', 'OPENAI_API_KEY', 0.3),           # paid
 }
 
 INSTRUCTION = ('The following is a multiple-choice question in Nepali. Answer with only the letter of the correct '
@@ -52,6 +60,8 @@ def load_env():
                 if '=' in line and not line.strip().startswith('#'):
                     k, v = line.split('=', 1)
                     env[k.strip()] = v.strip().strip('"\'')
+    if 'NVDIA_API_KEY' in env:  # accept the key under this spelling too
+        env.setdefault('NVIDIA_API_KEY', env['NVDIA_API_KEY'])
     return env
 
 
@@ -96,6 +106,10 @@ def ask(provider, model, extra, prompt, env):
         cfg = {'temperature': 0, 'maxOutputTokens': 1024, **extra}
         body = {'contents': [{'parts': [{'text': prompt}]}], 'generationConfig': cfg}
         headers = {'Content-Type': 'application/json', 'User-Agent': UA}
+    elif provider == 'openai':  # reasoning models: no temperature, output limit via max_completion_tokens
+        body = {'model': model, 'messages': [{'role': 'user', 'content': prompt}], 'max_completion_tokens': 4096,
+                **extra}
+        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + env[key_name], 'User-Agent': UA}
     else:
         body = {'model': model, 'messages': [{'role': 'user', 'content': prompt}], 'temperature': 0,
                 'max_tokens': 1024, **extra}
@@ -106,9 +120,13 @@ def ask(provider, model, extra, prompt, env):
     if provider == 'gemini':
         cand = d.get('candidates', [{}])[0]
         parts = cand.get('content', {}).get('parts', [])
-        return ''.join(p.get('text', '') for p in parts if not p.get('thought')), cand.get('finishReason', '')
+        u = d.get('usageMetadata', {})
+        usage = {'input': u.get('promptTokenCount'), 'output': (u.get('candidatesTokenCount') or 0) + (u.get('thoughtsTokenCount') or 0)}
+        return ''.join(p.get('text', '') for p in parts if not p.get('thought')), cand.get('finishReason', ''), usage
     choice = d['choices'][0]
-    return choice['message'].get('content') or '', choice.get('finish_reason', '')
+    u = d.get('usage') or {}
+    usage = {'input': u.get('prompt_tokens'), 'output': u.get('completion_tokens')}
+    return choice['message'].get('content') or '', choice.get('finish_reason', ''), usage
 
 
 def run(name, todo, env):
@@ -121,12 +139,12 @@ def run(name, todo, env):
     last = 0.0
     with open(out_path, 'a', encoding='utf-8') as f:
         for i, p in enumerate(todo, 1):
-            finish = ''
+            finish, usage = '', {}
             for attempt in range(6):
                 time.sleep(max(0.0, gap - (time.time() - last)))
                 last = time.time()
                 try:
-                    text, finish = ask(provider, model, extra, p['prompt'], env)
+                    text, finish, usage = ask(provider, model, extra, p['prompt'], env)
                     # An empty reply is asked again, unless the model used up its output limit (for example
                     # reasoning in a loop): that is its real behaviour and is scored as no answer.
                     if not text.strip() and attempt < 2 and str(finish).upper() not in ('MAX_TOKENS', 'LENGTH'):
@@ -150,7 +168,7 @@ def run(name, todo, env):
                     text, finish = f'<error> {e}', 'error'
             pred = parse_letter(text)
             rec = {k: p[k] for k in ('key', 'item_id', 'source', 'category', 'condition', 'writer', 'answer')}
-            rec.update({'model': name, 'model_id': model, 'output': text[:2000], 'pred': pred, 'finish': finish,
+            rec.update({'model': name, 'model_id': model, 'output': text[:2000], 'pred': pred, 'finish': finish, 'usage': usage,
                         'correct': pred == p['answer'], 'time': time.strftime('%Y-%m-%dT%H:%M:%S')})
             f.write(json.dumps(rec, ensure_ascii=False) + '\n')
             f.flush()
