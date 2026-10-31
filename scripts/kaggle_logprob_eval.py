@@ -48,8 +48,12 @@ def main():
 
     name = args.model.split('/')[-1]
     out = Path(args.out or f'/kaggle/working/{name}.jsonl')
-    done = {json.loads(l)['key'] for l in open(out, encoding='utf-8')} if out.exists() else set()
-    todo = [p for p in map(json.loads, open(args.prompts, encoding='utf-8')) if p['key'] not in done]
+    done = {}
+    if out.exists():  # the newest answer per prompt; a prompt whose text changed (new fingerprint) is scored again
+        for line in open(out, encoding='utf-8'):
+            r = json.loads(line)
+            done[r['key']] = r.get('phash')
+    todo = [p for p in map(json.loads, open(args.prompts, encoding='utf-8')) if done.get(p['key'], '-') != p.get('phash')]
     print(f'{name}: {len(done)} done, {len(todo)} to score')
 
     tok = AutoTokenizer.from_pretrained(args.model, token=os.environ.get('HF_TOKEN'))
@@ -96,7 +100,8 @@ def main():
                     scores = torch.logaddexp(scores, row[bold] + letter_scores(after_bold[j]))
                 probs = torch.softmax(scores, dim=0).tolist()  # renormalised over the four letters
                 pred = LETTERS[max(range(4), key=lambda i: probs[i])]
-                rec = {k: p[k] for k in ('key', 'item_id', 'source', 'category', 'condition', 'writer', 'answer')}
+                rec = {k: p.get(k) for k in ('key', 'item_id', 'source', 'category', 'condition', 'writer', 'answer',
+                                             'phash')}
                 rec.update({'model': name, 'model_id': args.model, 'output': '', 'pred': pred,
                             'correct': pred == p['answer'], 'probs': dict(zip(LETTERS, probs)),
                             'letter_mass': float(torch.exp(torch.logsumexp(scores, dim=0))),  # how much the model

@@ -41,7 +41,13 @@ def mcnemar_exact(b, c):
 
 
 def load(exclude_writers=()):
-    rows = [json.loads(l) for p in sorted((ROOT / 'results').glob('*.jsonl')) for l in open(p, encoding='utf-8')]
+    rows = []
+    for p in sorted((ROOT / 'results').glob('*.jsonl')):
+        newest = {}  # a prompt asked again after its text changed has a newer answer: use that one
+        for l in open(p, encoding='utf-8'):
+            r = json.loads(l)
+            newest[r['key']] = r
+        rows += newest.values()
     rows = [r for r in rows if not (r['condition'] == 'R_nat' and r.get('writer') in exclude_writers)]
     # A question with no answer (e.g. the model reasoned in a loop until its output limit) counts as wrong.
     table = defaultdict(lambda: defaultdict(dict))  # model -> item -> condition -> row (R-nat: first writer)
