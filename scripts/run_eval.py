@@ -11,6 +11,7 @@ Usage:
 API keys are read from .env at the repository root or from apps/romanized-data-collection/backend/.env.
 """
 import argparse
+import hashlib
 import json
 import re
 import time
@@ -84,6 +85,22 @@ def prompts(items_path):
             out.append({'key': key, 'item_id': r['item_id'], 'source': r['source'], 'category': r['category'],
                         'condition': cond, 'writer': writer, 'answer': r['answer'],
                         'prompt': f'{INSTRUCTION}\n\n{text}\nAnswer:'})
+            out[-1]['phash'] = phash(out[-1]['prompt'])
+    return out
+
+
+def phash(prompt):
+    """Fingerprint of the exact prompt text: a prompt is asked again if its text changes (e.g. a writer edits)."""
+    return hashlib.sha1(prompt.encode('utf-8')).hexdigest()[:12]
+
+
+def latest(path):
+    """key -> the newest answer in a results file (a re-asked prompt appends a newer answer)."""
+    out = {}
+    if path.exists():
+        for line in open(path, encoding='utf-8'):
+            r = json.loads(line)
+            out[r['key']] = r
     return out
 
 
@@ -133,9 +150,10 @@ def run(name, todo, env):
     provider, model, extra = MODELS[name]
     gap = PROVIDERS[provider][2]
     out_path = RESULTS / f'{name}.jsonl'
-    done = {json.loads(l)['key'] for l in open(out_path, encoding='utf-8')} if out_path.exists() else set()
-    todo = [p for p in todo if p['key'] not in done]
-    print(f'{name}: {len(done)} done, {len(todo)} to ask')
+    done = latest(out_path)
+    changed = sum(1 for p in todo if p['key'] in done and done[p['key']].get('phash') != p['phash'])
+    todo = [p for p in todo if done.get(p['key'], {}).get('phash') != p['phash']]
+    print(f'{name}: {len(done)} done, {len(todo)} to ask ({changed} of them because the text changed)')
     last = 0.0
     with open(out_path, 'a', encoding='utf-8') as f:
         for i, p in enumerate(todo, 1):
@@ -167,7 +185,7 @@ def run(name, todo, env):
                         continue
                     text, finish = f'<error> {e}', 'error'
             pred = parse_letter(text)
-            rec = {k: p[k] for k in ('key', 'item_id', 'source', 'category', 'condition', 'writer', 'answer')}
+            rec = {k: p[k] for k in ('key', 'item_id', 'source', 'category', 'condition', 'writer', 'answer', 'phash')}
             rec.update({'model': name, 'model_id': model, 'output': text[:2000], 'pred': pred, 'finish': finish, 'usage': usage,
                         'correct': pred == p['answer'], 'time': time.strftime('%Y-%m-%dT%H:%M:%S')})
             f.write(json.dumps(rec, ensure_ascii=False) + '\n')
@@ -177,7 +195,7 @@ def run(name, todo, env):
 
 
 def summary():
-    rows = [json.loads(l) for p in sorted(RESULTS.glob('*.jsonl')) for l in open(p, encoding='utf-8')]
+    rows = [r for p in sorted(RESULTS.glob('*.jsonl')) for r in latest(p).values()]
     if not rows:
         print('no results yet')
         return
