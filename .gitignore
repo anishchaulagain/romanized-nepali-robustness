@@ -41,3 +41,6 @@ desktop.ini
 
 # Public Belebele files for the multi-language check; re-downloadable (scripts/belebele_romanization_check.py)
 data/raw/belebele_romanized/
+
+# Model answers: written continuously by running evaluation jobs (scripts/run_eval.py), kept locally
+results/
