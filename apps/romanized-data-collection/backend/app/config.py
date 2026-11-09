@@ -38,6 +38,9 @@ APP_URL = os.getenv('APP_URL', FRONTEND_ORIGINS[0] if FRONTEND_ORIGINS else '').
 # environment variable), so a deployment cannot fall back to sharing items among a few writers.
 ALL_WRITERS = True
 WRITERS_PER_UNIT = 10 ** 6  # 'all': rebalance caps it at the number of active writers
+# Every writer's list follows this writer's order (item N is the same item for everyone). Empty: a fixed
+# pseudo-random order.
+ORDER_FROM_WRITER = 'W5'
 TOKEN_TTL_HOURS =int(os.getenv('TOKEN_TTL_HOURS', '168'))
 SEED_FILE = Path(os.getenv('SEED_FILE', BACKEND_DIR / 'seed' / 'items.json'))
 

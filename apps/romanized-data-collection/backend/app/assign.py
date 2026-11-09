@@ -3,8 +3,8 @@
 Every unit is written by WRITERS_PER_UNIT of the active writers, or by every active writer when it is 'all' (the
 default; config.ALL_WRITERS). Work is shared evenly by box count, and pairs of writers are spread so they overlap evenly. `rebalance` runs whenever the set of
 active writers changes; it never takes away a unit a writer has started, and a disabled writer's fully written
-units still count. Every writer sees their remaining units in the same fixed order (most-finished items first), with hidden repeats late
-in the list, so writers who stop early still overlap on most of what they wrote.
+units still count. Every writer sees the same master order (config.ORDER_FROM_WRITER's list, then the remaining units), with units they
+already wrote left in place, so item N is the same item for everyone and writers who stop early overlap on most of it.
 """
 import hashlib
 import random
@@ -118,13 +118,15 @@ def rebalance(db: Session) -> dict:
     # How many active writers have finished each unit: the next units everyone sees are the ones closest to having
     # all writers, so items typed by every writer accumulate first.
     finished_by = Counter(unit for (u, unit), n in answered.items() if u in active and n >= size.get(unit, 0))
+    # One master order for everyone: the order of the reference writer's list (config.ORDER_FROM_WRITER), followed
+    # by the units not on it (most-finished first, then a fixed pseudo-random order). Every writer's list follows it,
+    # with units they already wrote left in place, so item N is the same item for everyone.
+    master = canonical_order(db, plan, unit_by_id, finished_by)
     counts = {}
     for w in writers:
         mine = {unit for unit, ws in plan.items() if w.id in ws}
         old = db.scalars(select(Assignment).where(Assignment.user_id == w.id).order_by(Assignment.ord)).all()
-        kept = [a.unit_id for a in old if a.unit_id in mine and answered.get((w.id, a.unit_id))]
-        rest = unit_order([unit_by_id[x] for x in sorted(mine - set(kept))], w.username, finished_by)
-        order = kept + [u.id for u in rest]
+        order = [unit for unit in master if unit in mine]
         if [a.unit_id for a in old] != order:
             db.execute(delete(Assignment).where(Assignment.user_id == w.id))
             db.flush()
@@ -136,6 +138,18 @@ def rebalance(db: Session) -> dict:
         counts[w.id] = len(order)
     db.flush()
     return counts
+
+
+def canonical_order(db: Session, plan: dict, unit_by_id: dict, finished_by: Counter) -> list[int]:
+    """The master unit order: the reference writer's current list first, then every other planned unit."""
+    assigned = {unit for unit, ws in plan.items() if ws}
+    ref = db.scalar(select(User).where(User.writer_code == config.ORDER_FROM_WRITER)) if config.ORDER_FROM_WRITER else None
+    head = []
+    if ref:
+        head = [a.unit_id for a in db.scalars(select(Assignment).where(Assignment.user_id == ref.id)
+                                              .order_by(Assignment.ord)) if a.unit_id in assigned]
+    rest = unit_order([unit_by_id[x] for x in sorted(assigned - set(head))], '', finished_by)
+    return head + [u.id for u in rest]
 
 
 def append_unit_to_writers(db: Session, unit: Unit):

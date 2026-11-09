@@ -140,6 +140,9 @@ legend { font-weight: 700; padding: 0 .35rem; }
 /* Long passages stay light once written, so they are easy to read back. */
 .segment.passage textarea.filled:not(:focus) { background: var(--bubble); border-color: var(--bubble-line); color: var(--ink); }
 textarea.invalid, textarea.invalid.filled:not(:focus) { border-color: var(--crimson); background: var(--crimson-soft); color: var(--ink); }
+.already { display: flex; align-items: center; justify-content: space-between; gap: .8rem 1rem; flex-wrap: wrap;
+  background: var(--ok-soft); border-color: #bfdfcb; padding: .9rem 1.1rem; }
+.already b { color: #134e2f; }
 .seg-foot { display: flex; justify-content: flex-end; margin-top: .3rem; }
 .note { margin-top: .45rem; font-size: .92rem; }
 .dev-input { font-family: var(--font); }
@@ -280,6 +283,7 @@ button[aria-busy='true']:disabled { opacity: .75; }
   /* While typing, the Previous/Next bar steps aside; it returns when the keyboard closes. */
   .page.typing .dock { display: none; }
   .page.typing { padding-bottom: 2rem; }
+  .already button { width: 100%; }
   .jump form { margin-left: 0; width: 100%; }
   .jump input { flex: 1; width: auto; }
   .brand small { display: none; }
