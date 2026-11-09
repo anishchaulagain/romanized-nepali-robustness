@@ -42,8 +42,8 @@ function Overview({ data, reload }) {
         <Progress pct={pct} label="Overall progress" big />
         {data.short_units > 0 && (
           <p className="muted small-note">
-            {data.short_units} items have fewer than {data.writers_per_unit} active writers, usually because a writer
-            who already wrote them was disabled. Add a writer to have them written again.
+            {data.short_units} items have fewer than {data.writers_per_unit} active writers assigned. Disabling and
+            enabling any writer shares the work out again.
           </p>
         )}
       </div>
@@ -185,8 +185,10 @@ function Writers({ data, reload }) {
           onChange={(e) => setForm({ ...form, display_name: e.target.value })} /></label>
         <Button className="primary" busy={creating}>Create writer</Button>
         <p className="muted span">
-          Each item is written by {data.writers_per_unit} people. When you add, disable or enable a writer, the items
-          nobody has started are shared out again evenly. Work a writer has started stays with them. New writers
+          {data.all_writers
+            ? 'Every active writer types every item, so each item gets one version per writer. A new writer receives all items.'
+            : `Each item is written by ${data.writers_per_unit} people. When you add, disable or enable a writer, the items
+          nobody has started are shared out again evenly.`}{' '}Work a writer has started stays with them. New writers
           get a temporary password and choose their own when they first log in.
         </p>
       </form>

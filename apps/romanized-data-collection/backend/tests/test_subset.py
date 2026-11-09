@@ -9,11 +9,14 @@ os.environ.setdefault('ADMIN_PASSWORD', 'admin-pass-123')
 from sqlalchemy import create_engine, select  # noqa: E402
 from sqlalchemy.orm import Session  # noqa: E402
 
+from app import config  # noqa: E402
 from app.assign import rebalance  # noqa: E402
 from app.db import Assignment, Base, Response, Segment, Unit, User  # noqa: E402
 
 
-def test_retired_units_are_not_assigned():
+def test_retired_units_are_not_assigned(monkeypatch):
+    monkeypatch.setattr(config, 'WRITERS_PER_UNIT', 3)  # the fixed-k design: three of four writers per unit
+    monkeypatch.setattr(config, 'ALL_WRITERS', False)
     engine = create_engine('sqlite://')
     Base.metadata.create_all(engine)
     with Session(engine) as db:
@@ -41,3 +44,41 @@ def test_retired_units_are_not_assigned():
             assert u.id not in who                           # retired and unstarted: nobody
         assert who[units[9].id] == {writers[1].id}           # retired but started: stays with that writer
         assert who[units[10].id] == who[units[0].id]         # a hidden repeat goes to its original's writers
+
+
+def test_all_writers_type_every_unit(monkeypatch):
+    """Default design: every active writer gets every unit in the sample, even ones a disabled writer finished."""
+    monkeypatch.setattr(config, 'WRITERS_PER_UNIT', 10 ** 6)
+    monkeypatch.setattr(config, 'ALL_WRITERS', True)
+    engine = create_engine('sqlite://')
+    Base.metadata.create_all(engine)
+    with Session(engine) as db:
+        writers = [User(username=f'w{i}', password_hash='x', role='writer', writer_code=f'W{i}') for i in range(5)]
+        gone = User(username='gone', password_hash='x', role='writer', writer_code='W9', active=False)
+        units = [Unit(unit_key=f'u{i}', source='necco', category='c', retired=i >= 6) for i in range(8)]
+        db.add_all(writers + [gone] + units)
+        db.flush()
+        for u in units:
+            db.add_all(Segment(unit_id=u.id, position=p, item_id=u.unit_key, field='question' if p == 0 else 'A',
+                               label='Question', devanagari='क') for p in range(2))
+        db.flush()
+        for seg in db.scalars(select(Segment).where(Segment.unit_id == units[0].id)):  # finished by the disabled writer
+            db.add(Response(user_id=gone.id, segment_id=seg.id, romanized='ka'))
+        db.flush()
+
+        counts = rebalance(db)
+        who = {}
+        for a in db.scalars(select(Assignment)):
+            who.setdefault(a.unit_id, set()).add(a.user_id)
+        everyone = {w.id for w in writers}
+        for u in units[:6]:
+            assert who[u.id] == everyone                     # all five active writers type every unit
+        for u in units[6:]:
+            assert u.id not in who                           # retired units stay out
+        assert set(counts.values()) == {6}
+
+        new = User(username='late', password_hash='x', role='writer', writer_code='W5')  # a writer who joins later
+        db.add(new)
+        db.flush()
+        counts = rebalance(db)
+        assert counts[new.id] == 6 and all(n == 6 for n in counts.values())  # adding a writer never shrinks lists

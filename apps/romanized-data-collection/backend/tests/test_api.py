@@ -13,7 +13,11 @@ for k in ('SMTP_HOST', 'NOTIFY_EMAIL', 'NOTIFY_WEBHOOK_URL'):
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from app import notify  # noqa: E402
+from app import config, notify  # noqa: E402
+
+# This flow tests the fixed three-writers-per-item design; the default (every writer types every item) is tested
+# in test_subset.py.
+config.WRITERS_PER_UNIT, config.ALL_WRITERS = 3, False
 from app.main import app  # noqa: E402
 
 sent = []
@@ -86,9 +90,9 @@ def test_full_flow():
         assert c.put('/api/units/1', headers=ram, json={'responses': [{'segment_id': seg, 'romanized': 'suru'}]}).status_code == 200
         started_text = unit['segments'][0]['devanagari']
 
-        # Writers get different orders.
+        # Writers see the same order, so writers who stop early overlap on the same items.
         sita = auth(c, 'sita', 'writer-pass-1')
-        assert c.get('/api/units/1', headers=sita).json()['segments'][0]['devanagari'] != started_text
+        assert c.get('/api/units/1', headers=sita).json()['segments'][0]['devanagari'] == started_text
 
         # Four writers: every item goes to exactly 3 of them, and the work is shared evenly.
         for name in ('hari', 'gita'):

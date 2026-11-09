@@ -46,6 +46,15 @@ def initialize():
         with SessionLocal() as db:
             ensure_admin(db)
             seed_if_empty(db)
+        with SessionLocal() as db:
+            # After a deployment that changes the design (e.g. every writer now types every item), give writers
+            # the items they are missing without anyone having to touch the admin panel.
+            try:
+                if short_units(db) > 0:
+                    rebalance(db)
+                    db.commit()
+            except Exception:  # another instance may be doing the same; the next start tries again
+                db.rollback()
         _initialized = True
 
 
@@ -348,7 +357,8 @@ def overview(_: User = Depends(admin_user), db: Session = Depends(get_session)):
         'writers': [{**user_out(w), **stats.get(w.id, empty), 'temp_password': w.temp_password} for w in writers],
         'units': n_units,
         'segments': n_segments,
-        'writers_per_unit': config.WRITERS_PER_UNIT,
+        'writers_per_unit': min(config.WRITERS_PER_UNIT, sum(1 for w in writers if w.active)) or config.WRITERS_PER_UNIT,
+        'all_writers': config.ALL_WRITERS,
         'short_units': short_units(db),
         'notifications': [{'kind': n.kind, 'message': n.message, 'delivered': n.delivered, 'created_at': n.created_at}
                           for n in db.scalars(select(Notification).order_by(Notification.id.desc()).limit(20))],
