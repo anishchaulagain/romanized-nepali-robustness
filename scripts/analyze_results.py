@@ -40,7 +40,7 @@ def mcnemar_exact(b, c):
     return min(1.0, 2 * tail)
 
 
-def load(exclude_writers=()):
+def load(exclude_writers=(), exclude_models=()):
     rows = []
     for p in sorted((ROOT / 'results').glob('*.jsonl')):
         newest = {}  # a prompt asked again after its text changed has a newer answer: use that one
@@ -48,7 +48,8 @@ def load(exclude_writers=()):
             r = json.loads(l)
             newest[r['key']] = r
         rows += newest.values()
-    rows = [r for r in rows if not (r['condition'] == 'R_nat' and r.get('writer') in exclude_writers)]
+    rows = [r for r in rows if r['model'] not in exclude_models
+            and not (r['condition'] == 'R_nat' and r.get('writer') in exclude_writers)]
     # A question with no answer (e.g. the model reasoned in a loop until its output limit) counts as wrong.
     table = defaultdict(lambda: defaultdict(dict))  # model -> item -> condition -> row (R-nat: first writer)
     for r in rows:
@@ -225,8 +226,10 @@ def main():
     ap.add_argument('--tokenizers', nargs='*', default=[])
     ap.add_argument('--exclude-writers', nargs='*', default=['W1', 'W2'],
                     help='writer codes left out of R-nat (default: the two early test accounts)')
+    ap.add_argument('--exclude-models', nargs='*', default=['gemini-3.5-flash'],
+                    help='models left out (default: the paused Gemini 3.5 Flash run)')
     args = ap.parse_args()
-    rows, table = load(set(args.exclude_writers))
+    rows, table = load(set(args.exclude_writers), set(args.exclude_models))
     accuracy_section(table)
     no_answer_section(rows)
     contrast_section(table)

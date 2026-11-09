@@ -86,7 +86,8 @@ def flags(df):
         why = []
         if DEVANAGARI.search(str(r.romanized)):
             why.append('Devanagari in romanization')
-        if dev_words[i] >= 3 and (ratio[i] < 0.6 or ratio[i] > 2.2):
+        # Missing words are a problem; extra words usually come from splitting run-together Devanagari words.
+        if dev_words[i] >= 3 and (ratio[i] < 0.6 or ratio[i] > 3.0):
             why.append(f'word count {rom_words[i]} vs {dev_words[i]} in Devanagari (omitted or added words?)')
         if isinstance(r.r_std, str) and dev_words[i] >= 4 and norm(r.romanized) == norm(r.r_std):
             why.append('identical to the existing romanization')
