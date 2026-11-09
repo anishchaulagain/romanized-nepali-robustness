@@ -12,6 +12,16 @@ const DEVANAGARI = /[ऀ-ॿ]/;
 const IDLE_MS = 60_000; // time without any interaction is not counted as active
 const AUTOSAVE_MS = 800; // save this long after the writer stops typing
 const RETRY_MS = 5_000; // retry a save that failed because of the network or the server
+const PHONE = '(max-width: 640px)'; // phone layout: matches the CSS breakpoint
+
+// On a phone the keyboard covers half the screen: once it has opened, bring the box's Devanagari text to the top,
+// so the line being copied and the box being typed in are both visible.
+function revealSegment(el) {
+  if (!window.matchMedia?.(PHONE).matches) return;
+  const section = el.closest('.segment');
+  if (!section) return;
+  setTimeout(() => section.scrollIntoView({ block: 'start', behavior: 'smooth' }), 300);
+}
 
 const PROFILE_FIELDS = [
   ['home_region', 'Home district / region where you grew up', null],
@@ -198,6 +208,10 @@ export default function Writer() {
   const [showHelp, setShowHelp] = useState(false);
   const [jump, setJump] = useState('');
   const [reviewing, setReviewing] = useState(false);
+  const [typing, setTyping] = useState(false); // a box has focus: on phones the action bar steps aside
+  const blurTimer = useRef(null);
+  const startTyping = (e) => { clearTimeout(blurTimer.current); setTyping(true); revealSegment(e.target); };
+  const stopTyping = () => { blurTimer.current = setTimeout(() => setTyping(false), 150); };
   const activeMs = useRef(0);
   const pasteBlocked = useRef(0);
   const lastActivity = useRef(Date.now());
@@ -351,7 +365,7 @@ export default function Writer() {
   const pct = total ? Math.round((100 * done) / total) : 0;
 
   return (
-    <div className="page">
+    <div className={`page ${typing ? 'typing' : ''}`}>
       <Toast toast={toast} />
       {showHelp && <Instructions onClose={() => { localStorage.setItem(`rn-help-${me.user.username}`, '1'); setShowHelp(false); }} />}
       <header className="topbar">
@@ -398,7 +412,8 @@ export default function Writer() {
                   invalid={invalid}
                   placeholder="Type it in English letters…"
                   onChange={(e) => { setValues({ ...values, [s.id]: e.target.value }); edits.current += 1; setDirty(true); }}
-                  onBlur={() => save()}
+                  onFocus={startTyping}
+                  onBlur={() => { stopTyping(); save(); }}
                   onPaste={blockPaste}
                   onDrop={blockPaste}
                 />
@@ -406,7 +421,7 @@ export default function Writer() {
                 {invalid && <div className="error small">Use English letters only.</div>}
                 {openNotes[s.id] ? (
                   <input className="note" placeholder="Note (optional), e.g. a word you were unsure about"
-                    value={notes[s.id] || ''} onBlur={() => save()}
+                    value={notes[s.id] || ''} onFocus={startTyping} onBlur={() => { stopTyping(); save(); }}
                     onChange={(e) => { setNotes({ ...notes, [s.id]: e.target.value }); edits.current += 1; setDirty(true); }} />
                 ) : (
                   <div className="seg-foot">

@@ -1,10 +1,12 @@
 """Which units each writer gets and in what order.
 
-Every unit is written by WRITERS_PER_UNIT of the active writers (all of them if there are fewer). Work is shared
-evenly by box count, and pairs of writers are spread so they overlap evenly. `rebalance` runs whenever the set of
+Every unit is written by WRITERS_PER_UNIT of the active writers, or by every active writer when it is 'all' (the
+default; config.ALL_WRITERS). Work is shared evenly by box count, and pairs of writers are spread so they overlap evenly. `rebalance` runs whenever the set of
 active writers changes; it never takes away a unit a writer has started, and a disabled writer's fully written
-units still count. Each writer sees their units in their own random order, with hidden repeats late in the list.
+units still count. Every writer sees their remaining units in the same fixed order (most-finished items first), with hidden repeats late
+in the list, so writers who stop early still overlap on most of what they wrote.
 """
+import hashlib
 import random
 from collections import Counter
 from itertools import combinations
@@ -19,13 +21,22 @@ MIN_REPEAT_GAP = 20  # units between an item and its hidden repeat, when possibl
 LOAD_STEP = 40       # box counts this close count as equal work, so pair overlap can decide
 
 
-def unit_order(units: list[Unit], username: str) -> list[Unit]:
-    rng = random.Random(f'order-{username}')
-    base = [u for u in units if not u.repeat_of]
-    repeats = [u for u in units if u.repeat_of]
-    rng.shuffle(base)
+def _rank(unit_key: str) -> str:
+    """A fixed pseudo-random position for a unit, the same for every writer and every run."""
+    return hashlib.sha1(f'order:{unit_key}'.encode()).hexdigest()
+
+
+def unit_order(units: list[Unit], username: str = '', finished_by: Counter | None = None) -> list[Unit]:
+    """The order a writer sees their units in: the same order for every writer, so writers who stop early have
+    written largely the same items. Units that more writers have already finished come first, so each item reaches
+    its full set of writers as early as possible. Hidden repeats go in the second half, away from their originals.
+    (`username` is kept for compatibility; the order no longer depends on it.)"""
+    finished_by = finished_by or Counter()
+    base = sorted((u for u in units if not u.repeat_of), key=lambda u: (-finished_by[getattr(u, 'id', None)], _rank(u.unit_key)))
+    repeats = sorted((u for u in units if u.repeat_of), key=lambda u: _rank(u.unit_key))
     order = list(base)
     for rep in repeats:
+        rng = random.Random(f'repeat-{rep.unit_key}')
         half = len(order) // 2
         pos = rng.randint(half, len(order))
         for _ in range(50):
@@ -88,7 +99,9 @@ def rebalance(db: Session) -> dict:
             for w in keep:
                 load[w] += size.get(u.id, 0)
             continue
-        done_elsewhere = sum(1 for (w, unit) in inactive_complete if unit == u.id)
+        # With a fixed number of writers per unit, a disabled writer's finished version counts towards it. When every
+        # active writer types every unit, it does not: each active writer still gets the unit.
+        done_elsewhere = 0 if config.ALL_WRITERS else sum(1 for (w, unit) in inactive_complete if unit == u.id)
         take(u.id, keep, max(0, k - done_elsewhere - len(keep)))
         plan[u.id] = keep
 
@@ -102,12 +115,15 @@ def rebalance(db: Session) -> dict:
                 load[w] += size.get(u.id, 0)
 
     unit_by_id = {u.id: u for u in units}
+    # How many active writers have finished each unit: the next units everyone sees are the ones closest to having
+    # all writers, so items typed by every writer accumulate first.
+    finished_by = Counter(unit for (u, unit), n in answered.items() if u in active and n >= size.get(unit, 0))
     counts = {}
     for w in writers:
         mine = {unit for unit, ws in plan.items() if w.id in ws}
         old = db.scalars(select(Assignment).where(Assignment.user_id == w.id).order_by(Assignment.ord)).all()
         kept = [a.unit_id for a in old if a.unit_id in mine and answered.get((w.id, a.unit_id))]
-        rest = unit_order([unit_by_id[x] for x in sorted(mine - set(kept))], w.username)
+        rest = unit_order([unit_by_id[x] for x in sorted(mine - set(kept))], w.username, finished_by)
         order = kept + [u.id for u in rest]
         if [a.unit_id for a in old] != order:
             db.execute(delete(Assignment).where(Assignment.user_id == w.id))

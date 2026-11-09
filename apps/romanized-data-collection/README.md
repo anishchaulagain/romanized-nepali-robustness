@@ -3,8 +3,10 @@
 A small web app in which native speakers independently type Devanagari Nepali items the way they would in
 chat. It produces the natural-romanization (R-nat) condition of the Paper 1 benchmark.
 
-**Design:** 241 questions (180 NeCCo = 30 per category, 61 Belebele in 34 passages), each written by 3 of the active
-writers (`WRITERS_PER_UNIT`); with 3 writers everyone writes everything, about 1,330 boxes (5–6 hours). The sample
+**Design:** 241 questions (180 NeCCo = 30 per category, 61 Belebele in 34 passages), each written by every
+active writer (fixed in `app/config.py`), about 1,340 boxes per writer including 20 hidden repeats. A new writer gets
+all items; writers who already started keep their work and only receive the items they are missing. After a
+deployment, the backend gives writers their missing items on startup, so no admin action is needed. The sample
 is chosen from a seeded pool of 600 questions; the rest are *retired* (not given to writers, kept for later). To change
 the size, run `python -m app.select_subset --necco-per-category N --belebele-questions M` from `backend/` (dry run;
 add `--apply`). Units already started are always kept.

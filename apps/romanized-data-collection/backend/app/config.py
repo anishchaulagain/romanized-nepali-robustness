@@ -34,7 +34,10 @@ def _origin(value: str) -> str:
 FRONTEND_ORIGINS = [o for o in (_origin(v) for v in os.getenv('FRONTEND_ORIGINS', 'http://localhost:5173').split(','))
                     if o]
 APP_URL = os.getenv('APP_URL', FRONTEND_ORIGINS[0] if FRONTEND_ORIGINS else '').strip().strip('"\'').rstrip('/')
-WRITERS_PER_UNIT = int(os.getenv('WRITERS_PER_UNIT', '3'))  # independent writers per item (all writers, if fewer)
+# Every active writer types every item, so each item gets one version per writer. This is fixed in code (no
+# environment variable), so a deployment cannot fall back to sharing items among a few writers.
+ALL_WRITERS = True
+WRITERS_PER_UNIT = 10 ** 6  # 'all': rebalance caps it at the number of active writers
 TOKEN_TTL_HOURS =int(os.getenv('TOKEN_TTL_HOURS', '168'))
 SEED_FILE = Path(os.getenv('SEED_FILE', BACKEND_DIR / 'seed' / 'items.json'))
 

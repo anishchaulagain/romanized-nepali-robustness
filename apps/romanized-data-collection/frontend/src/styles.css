@@ -69,7 +69,7 @@ fieldset { border: 1px solid var(--line); border-radius: var(--r-card); margin: 
 legend { font-weight: 700; padding: 0 .35rem; }
 
 .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-card); padding: 1.3rem 1.4rem; margin-bottom: 1rem; }
-.center { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem 16px; }
+.center { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 1.5rem 16px; }
 .narrow { width: min(560px, 100%); }
 .error { color: var(--crimson); background: var(--crimson-soft); border-radius: var(--r-ctl); padding: .55rem .8rem; margin: .5rem 0 .8rem; }
 .error.small { background: none; padding: 0; margin: .3rem 0 0; font-size: .88rem; }
@@ -120,7 +120,7 @@ legend { font-weight: 700; padding: 0 .35rem; }
 .status.saving { color: var(--slate); }
 .status.bad { color: var(--crimson); }
 
-.segment { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-card); padding: 1rem 1.1rem .8rem; margin-bottom: .75rem; }
+.segment { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-card); padding: 1rem 1.1rem .8rem; margin-bottom: .75rem; scroll-margin-top: .6rem; }
 .segment.passage { padding-top: 1.2rem; }
 .segment.passage .dev { font-size: 1.15rem; line-height: 1.9; }
 .seg-label { font-size: .85rem; font-weight: 600; color: var(--slate); margin-bottom: .15rem; }
@@ -148,7 +148,7 @@ textarea.invalid, textarea.invalid.filled:not(:focus) { border-color: var(--crim
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: rgba(237, 240, 244, .94);
   backdrop-filter: blur(6px); border-top: 1px solid var(--line);
 }
-.dock-inner { max-width: 780px; margin: 0 auto; padding: .7rem 16px; display: flex; align-items: center; gap: .5rem; }
+.dock-inner { max-width: 780px; margin: 0 auto; padding: .7rem 16px calc(.7rem + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: .5rem; }
 .dock-inner .spacer { flex: 1; }
 .dock .primary { padding: .6rem 1.3rem; }
 .jump { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .6rem; margin-top: 1.2rem; }
@@ -263,7 +263,25 @@ button[aria-busy='true']:disabled { opacity: .75; }
 }
 @media (max-width: 640px) {
   .card { padding: 1rem; }
-  .topbar { gap: .4rem .6rem; padding: .55rem 0; }
+  /* Phones: the bar scrolls away, leaving the screen above the keyboard for the text being copied. */
+  .topbar { position: static; gap: .4rem .6rem; padding: .55rem 0; margin-bottom: 1rem; }
+  .unit-head h2 { font-size: 1.25rem; }
+  /* The Devanagari line stays in view while its box is typed in: it sticks to the top of the screen for as long
+     as its box is on screen, and a long passage scrolls inside its own panel. */
+  .segment .dev {
+    position: sticky; top: 0; z-index: 2; background: var(--paper);
+    margin: -.2rem -.85rem .6rem; padding: .35rem .85rem .45rem; max-height: 38vh; max-height: 38dvh; overflow-y: auto;
+    overscroll-behavior: contain; border-bottom: 1px solid transparent;
+  }
+  .segment:focus-within .dev { border-bottom-color: var(--line); box-shadow: 0 6px 10px -8px rgba(23, 34, 56, .25); }
+  .segment.passage .dev { font-size: 1.08rem; line-height: 1.8; }
+  .segment textarea { width: 100%; font-size: 1.05rem; }
+  .note { font-size: 16px; } /* 16px or larger, so iOS does not zoom in on focus */
+  /* While typing, the Previous/Next bar steps aside; it returns when the keyboard closes. */
+  .page.typing .dock { display: none; }
+  .page.typing { padding-bottom: 2rem; }
+  .jump form { margin-left: 0; width: 100%; }
+  .jump input { flex: 1; width: auto; }
   .brand small { display: none; }
   .top-progress { order: 3; flex-basis: 100%; max-width: none; min-width: 0; }
   .actions button { padding: .3rem .6rem; font-size: .9rem; }
