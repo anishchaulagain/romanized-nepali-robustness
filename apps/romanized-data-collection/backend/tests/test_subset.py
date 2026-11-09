@@ -82,3 +82,39 @@ def test_all_writers_type_every_unit(monkeypatch):
         db.flush()
         counts = rebalance(db)
         assert counts[new.id] == 6 and all(n == 6 for n in counts.values())  # adding a writer never shrinks lists
+
+
+def test_everyone_follows_the_reference_writers_order(monkeypatch):
+    """Item N is the same item for every writer: the reference writer's list order, with written items kept in place."""
+    monkeypatch.setattr(config, 'WRITERS_PER_UNIT', 10 ** 6)
+    monkeypatch.setattr(config, 'ALL_WRITERS', True)
+    monkeypatch.setattr(config, 'ORDER_FROM_WRITER', 'REF')
+    engine = create_engine('sqlite://')
+    Base.metadata.create_all(engine)
+    with Session(engine) as db:
+        ref = User(username='ref', password_hash='x', role='writer', writer_code='REF')
+        other = User(username='other', password_hash='x', role='writer', writer_code='OTH')
+        units = [Unit(unit_key=f'u{i}', source='necco', category='c') for i in range(6)]
+        db.add_all([ref, other] + units)
+        db.flush()
+        for u in units:
+            db.add(Segment(unit_id=u.id, position=0, item_id=u.unit_key, field='question', label='Question', devanagari='क'))
+        # the reference writer's existing list covers four units, in their own order
+        mine = [units[3], units[0], units[5], units[1]]
+        db.add_all(Assignment(user_id=ref.id, unit_id=u.id, ord=i) for i, u in enumerate(mine, 1))
+        # the other writer already wrote u5
+        db.flush()
+        db.add(Response(user_id=other.id, segment_id=db.scalar(select(Segment.id).where(Segment.unit_id == units[5].id)),
+                        romanized='ka'))
+        db.flush()
+
+        rebalance(db)
+        def order(user):
+            return [a.unit_id for a in db.scalars(select(Assignment).where(Assignment.user_id == user.id)
+                                                  .order_by(Assignment.ord))]
+        assert order(ref) == order(other)                                   # the same order for everyone
+        assert order(ref)[:4] == [u.id for u in mine]                       # starting with the reference's own order
+        assert set(order(ref)) == {u.id for u in units}                     # and every unit
+        assert order(other).index(units[5].id) == 2                         # a written unit stays in its place
+        rebalance(db)
+        assert order(ref)[:4] == [u.id for u in mine]                       # stable when run again

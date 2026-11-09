@@ -208,6 +208,7 @@ export default function Writer() {
   const [showHelp, setShowHelp] = useState(false);
   const [jump, setJump] = useState('');
   const [reviewing, setReviewing] = useState(false);
+  const [alreadyDone, setAlreadyDone] = useState(false); // the item was fully written before it was opened
   const [typing, setTyping] = useState(false); // a box has focus: on phones the action bar steps aside
   const blurTimer = useRef(null);
   const startTyping = (e) => { clearTimeout(blurTimer.current); setTyping(true); revealSegment(e.target); };
@@ -257,6 +258,7 @@ export default function Writer() {
       setValues(Object.fromEntries(u.segments.map((s) => [s.id, s.romanized])));
       setNotes(Object.fromEntries(u.segments.map((s) => [s.id, s.note || ''])));
       setOpenNotes(Object.fromEntries(u.segments.map((s) => [s.id, Boolean(s.note)])));
+      setAlreadyDone(u.segments.length > 0 && u.segments.every((s) => (s.romanized || '').trim()));
       setDirty(false);
       setError('');
       setStatus('');
@@ -340,7 +342,9 @@ export default function Writer() {
       setOrd(null); // everything written: show the done screen
       showToast('Saved. Every item is written.');
     } else {
-      setOrd(hasNext ? unit.ord + 1 : nextOrd);
+      // Everyone shares one item order and some items are already written: go straight to the next unwritten one
+      // (in review mode, step through every item).
+      setOrd(reviewing ? (hasNext ? unit.ord + 1 : nextOrd) : (nextOrd ?? unit.ord + 1));
       showToast(`Item ${unit.ord} saved`);
     }
   }
@@ -398,6 +402,18 @@ export default function Writer() {
             <SaveStatus status={status} dirty={dirty}
               invalid={unit.segments.some((x) => DEVANAGARI.test(values[x.id] || ''))} />
           </div>
+          {alreadyDone && !reviewing && (
+            <div className="card already" role="status">
+              <div>
+                <b>You have already written this item.</b>
+                <span className="muted"> Your answers are below; you can correct them if you like.</span>
+              </div>
+              {me.next_ord && me.next_ord !== unit.ord ? (
+                <Button className="primary" busy={pending === 'skip'} disabled={Boolean(pending)}
+                  onClick={() => runAction('skip', () => goTo(me.next_ord))}>Go to next unwritten item ({me.next_ord})</Button>
+              ) : !me.next_ord && <span className="muted">You have written every item. Thank you!</span>}
+            </div>
+          )}
           {unit.segments.map((s) => {
             const invalid = DEVANAGARI.test(values[s.id] || '');
             return (
